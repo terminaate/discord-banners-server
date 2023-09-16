@@ -1,10 +1,7 @@
 import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
 import morgan from 'morgan';
-import { User } from '@/models/user.model';
-import { Banner } from '@/banner/Banner';
-import { UserActivity } from '@/models/user-activity.model';
-import { UserDTO } from '@/dto/user.dto';
+import path from 'path';
 
 class ResponseDTO {
 	constructor(
@@ -38,26 +35,7 @@ export const boostrapServer = () => {
 	app.use(express.json());
 	app.use(bodyExceptionMiddleware);
 	app.use(morgan(process.env.NODE_ENV === 'dev' ? 'dev' : 'common'));
-
-	app.get('/widget/:userid', async (req, res) => {
-		const userId = req.params.userid;
-		const user = await User.findByPk(userId);
-
-		res.setHeader(
-			'Content-Type',
-			user == null ? 'application/json' : 'image/png',
-		);
-
-		if (user == null) {
-			return res.status(404).json(new ResponseDTO('User not found', 404));
-		}
-
-		const userActivity = await UserActivity.findOne({ where: { userId } });
-
-		const canvas = await Banner.create(user, userActivity ?? undefined);
-		res.status(200);
-		canvas.createPNGStream().pipe(res);
-	});
+	app.use('/widget', express.static(path.join(__dirname, '../static')));
 
 	app.listen(SERVER_PORT, () =>
 		console.log('Server listening on http://127.0.0.1:' + SERVER_PORT),

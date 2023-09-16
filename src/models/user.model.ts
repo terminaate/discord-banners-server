@@ -1,5 +1,8 @@
 import { db } from '@/db';
 import { DataTypes, Model } from 'sequelize';
+import * as fs from 'fs';
+import * as path from 'path';
+import { renderUserBanner } from '@/utils/renderUserBanner';
 
 export interface UserProps {
 	id: string;
@@ -15,37 +18,63 @@ export interface UserProps {
 
 export type UserModel = Model<UserProps, UserProps>;
 
-export const User = db.define<UserModel>('User', {
-	id: {
-		type: DataTypes.STRING,
-		defaultValue: DataTypes.UUIDV4,
-		primaryKey: true,
+const writeBannerToFS = async (model: UserModel) => {
+	const userId = model.getDataValue('id');
+
+	const canvas = await renderUserBanner(model);
+
+	fs.writeFileSync(
+		path.resolve(__dirname, `../../static/${userId}.png`),
+		canvas!.toBuffer('image/png'),
+	);
+};
+
+export const User = db.define<UserModel>(
+	'User',
+	{
+		id: {
+			type: DataTypes.STRING,
+			defaultValue: DataTypes.UUIDV4,
+			primaryKey: true,
+		},
+		username: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
+		avatar: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
+		banner: {
+			type: DataTypes.STRING,
+		},
+		status: {
+			type: DataTypes.STRING,
+		},
+		customStatus: {
+			type: DataTypes.STRING,
+		},
+		publicFlags: {
+			type: DataTypes.NUMBER,
+		},
+		accentColor: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
+		premiumSince: {
+			type: DataTypes.NUMBER,
+		},
 	},
-	username: {
-		type: DataTypes.STRING,
-		allowNull: false,
+	{
+		hooks: {
+			afterCreate: writeBannerToFS,
+			afterUpdate: writeBannerToFS,
+			afterSave: writeBannerToFS,
+			afterDestroy(model) {
+				const userId = model.getDataValue('id');
+
+				fs.rmSync(path.resolve(__dirname, `../../static/${userId}.png`));
+			},
+		},
 	},
-	avatar: {
-		type: DataTypes.STRING,
-		allowNull: false,
-	},
-	banner: {
-		type: DataTypes.STRING,
-	},
-	status: {
-		type: DataTypes.STRING,
-	},
-	customStatus: {
-		type: DataTypes.STRING,
-	},
-	publicFlags: {
-		type: DataTypes.NUMBER,
-	},
-	accentColor: {
-		type: DataTypes.STRING,
-		allowNull: false,
-	},
-	premiumSince: {
-		type: DataTypes.NUMBER,
-	},
-});
+);

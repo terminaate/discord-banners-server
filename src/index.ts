@@ -1,12 +1,13 @@
 import dotenv from 'dotenv';
 import * as process from 'process';
-import { ActivityType, Client, GatewayIntentBits } from 'discord.js';
+import { Client, GatewayIntentBits } from 'discord.js';
 import { db } from '@/db';
 import { User } from '@/models/user.model';
-import { createNewUser, updateOrCreateActivity } from '@/utils/createNewUser';
+import { createNewUser } from '@/utils/createNewUser';
 import { UserDTO } from '@/dto/user.dto';
 import { UserActivity } from '@/models/user-activity.model';
 import { boostrapServer } from '@/server';
+import { updateOrCreateActivity } from '@/utils/updateOrCreateActivity';
 
 dotenv.config({ path: `.${process.env.NODE_ENV}.env` });
 
@@ -38,7 +39,7 @@ const boostrap = async () => {
 			return;
 		}
 
-		for (const [memberId, member] of [...guild.members.valueOf()]) {
+		for (const [, member] of [...guild.members.valueOf()]) {
 			createNewUser(member);
 		}
 	});

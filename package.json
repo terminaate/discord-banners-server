@@ -1,5 +1,5 @@
 {
-  "name": "discord-banners",
+  "name": "discord-banners-server",
   "version": "1.0.0",
   "description": "Discord banners",
   "main": "dist/index.js",
