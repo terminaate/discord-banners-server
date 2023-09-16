@@ -26,9 +26,9 @@ const STATUS_COLORS: Record<PresenceStatus, string> = {
 };
 
 const PUBLIC_FLAGS_IMAGES: Record<number, string> = {
-	64: path.resolve(__dirname) + '/assets/icons/HypeSquad_Bravery.svg',
-	128: path.resolve(__dirname) + '/assets/icons/HypeSquad_Brilliance.svg',
-	256: path.resolve(__dirname) + '/assets/icons/HypeSquad_Balance.svg',
+	64: path.resolve(__dirname, '../assets/icons/HypeSquad_Bravery.svg'),
+	128: path.resolve(__dirname, '../assets/icons/HypeSquad_Brilliance.svg'),
+	256: path.resolve(__dirname, '../assets/icons/HypeSquad_Balance.svg'),
 };
 
 const ACTIVITIES_TEXT: Partial<Record<ActivityType, string>> = {
@@ -185,12 +185,15 @@ export class Banner {
 	}
 
 	private registerFonts() {
-		registerFont(path.resolve(__dirname, 'assets/fonts/ABCGintoNormal.otf'), {
-			family: 'ABCGintoNormal',
-			style: 'normal',
-			weight: '700',
-		});
-		registerFont(path.resolve(__dirname, 'assets/fonts/Whitney.otf'), {
+		registerFont(
+			path.resolve(__dirname, '../assets/fonts/ABCGintoNormal.otf'),
+			{
+				family: 'ABCGintoNormal',
+				style: 'normal',
+				weight: '700',
+			},
+		);
+		registerFont(path.resolve(__dirname, '../assets/fonts/Whitney.otf'), {
 			family: 'Whitney',
 			style: 'normal',
 		});
@@ -404,7 +407,7 @@ export class Banner {
 		}
 
 		const nitroImage = await loadImage(
-			path.resolve(__dirname) + '/assets/icons/nitro.svg',
+			path.resolve(__dirname, '../assets/icons/nitro.svg'),
 		);
 
 		this.ctx.drawImage(
@@ -430,8 +433,10 @@ export class Banner {
 
 	private async drawActivityImage() {
 		const activityImageURL = this.userActivity!.getDataValue('image');
-		const defaultActivityImage =
-			path.resolve(__dirname) + '/assets/icons/activity.svg';
+		const defaultActivityImage = path.resolve(
+			__dirname,
+			'../assets/icons/activity.svg',
+		);
 
 		const activityImage = await loadImage(
 			activityImageURL ?? defaultActivityImage,

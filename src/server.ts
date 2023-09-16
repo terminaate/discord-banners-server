@@ -53,7 +53,6 @@ export const boostrapServer = () => {
 		}
 
 		const userActivity = await UserActivity.findOne({ where: { userId } });
-		console.log(userActivity?.dataValues.image);
 
 		const canvas = await Banner.create(user, userActivity ?? undefined);
 		res.status(200);

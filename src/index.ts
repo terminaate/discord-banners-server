@@ -3,11 +3,10 @@ import * as process from 'process';
 import { ActivityType, Client, GatewayIntentBits } from 'discord.js';
 import { db } from '@/db';
 import { User } from '@/models/user.model';
-import { createNewUser } from '@/utils/createNewUser';
+import { createNewUser, updateOrCreateActivity } from '@/utils/createNewUser';
 import { UserDTO } from '@/dto/user.dto';
 import { UserActivity } from '@/models/user-activity.model';
 import { boostrapServer } from '@/server';
-import { UserActivityDTO } from '@/dto/user-activity.dto';
 
 dotenv.config({ path: `.${process.env.NODE_ENV}.env` });
 
@@ -33,10 +32,15 @@ const boostrap = async () => {
 
 	client.on('ready', () => {
 		console.log(`Logged in as ${client.user?.tag}!`);
-	});
 
-	client.on('messageCreate', (msg) => {
-		console.log(msg.author);
+		const guild = client.guilds.cache.get(process.env.GUILD_ID);
+		if (!guild) {
+			return;
+		}
+
+		for (const [memberId, member] of [...guild.members.valueOf()]) {
+			createNewUser(member);
+		}
 	});
 
 	client.on('userUpdate', async (_, user) => {
@@ -63,44 +67,7 @@ const boostrap = async () => {
 			return;
 		}
 
-		const newCustomStatus = presence.activities.find(
-			(o) => o.type === ActivityType.Custom,
-		);
-		const newActivity = presence.activities.find(
-			(o) => o.type !== ActivityType.Custom,
-		);
-		const userActivity = await UserActivity.findOne({
-			where: { userId: presence.member.id },
-		});
-
-		if (newActivity) {
-			if (userActivity) {
-				await userActivity.update(
-					new UserActivityDTO(newActivity, presence.member),
-				);
-			} else {
-				await UserActivity.create(
-					new UserActivityDTO(newActivity, presence.member),
-				);
-			}
-		} else {
-			await UserActivity.destroy({
-				where: { userId: presence.member.id },
-			});
-		}
-
-		if (newCustomStatus) {
-			// TODO: refactor?
-			await user.update({
-				...user.dataValues,
-				customStatus: newCustomStatus.state,
-			});
-		} else {
-			await user.update({
-				...user.dataValues,
-				customStatus: null,
-			});
-		}
+		await updateOrCreateActivity(presence, user);
 	});
 
 	client.on('guildMemberAdd', (member) => {

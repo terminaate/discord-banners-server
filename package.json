@@ -8,8 +8,9 @@
     "start:dev": "tsc-watch --project . --onSuccess \"cross-env NODE_ENV=dev node -r module-alias/register ./dist/index.js\"",
     "format": "prettier --write \"src/**/*\"",
     "lint": "eslint -c .eslintrc.js --ext .ts ./src",
-    "build": "npm run build:clean && tsc && tsc-alias -p tsconfig.json",
+    "build": "npm run build:clean && tsc && tsc-alias -p tsconfig.json && npm run build:assets",
     "build:clean": "rimraf dist",
+    "build:assets": "tscp",
     "new:module": "hygen new module"
   },
   "repository": "https://github.com/terminaate/game-store-server",
@@ -38,7 +39,8 @@
     "ts-node": "^10.9.1",
     "tsc-alias": "^1.8.7",
     "tsc-watch": "^6.0.4",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "typescript-cp": "^0.1.9"
   },
   "dependencies": {
     "canvas": "^2.11.2",
