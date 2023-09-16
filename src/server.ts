@@ -2,6 +2,7 @@ import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
 import morgan from 'morgan';
 import path from 'path';
+import { createStaticFolder } from '@/utils/createStaticFolder';
 
 class ResponseDTO {
 	constructor(
@@ -27,6 +28,8 @@ const bodyExceptionMiddleware = (
 
 export const boostrapServer = () => {
 	const app = express();
+
+	createStaticFolder();
 
 	const { SERVER_PORT } = process.env;
 
