@@ -9,4 +9,3 @@ coverage
 *.local.env
 .dev.env
 db
-static/*
