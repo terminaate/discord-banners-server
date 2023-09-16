@@ -24,7 +24,7 @@ const writeBannerToFS = async (model: UserModel) => {
 	const canvas = await renderUserBanner(model);
 
 	fs.writeFileSync(
-		path.resolve(__dirname, `../../static/${userId}.png`),
+		path.resolve(__dirname, `../static/${userId}.png`),
 		canvas!.toBuffer('image/png'),
 	);
 };
