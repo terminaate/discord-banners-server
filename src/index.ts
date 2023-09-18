@@ -3,7 +3,7 @@ import * as process from 'process';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { db } from '@/db';
 import { User } from '@/models/user.model';
-import { createNewUser } from '@/utils/createNewUser';
+import { updateOrCreateUser } from '@/utils/updateOrCreateUser';
 import { UserDTO } from '@/dto/user.dto';
 import { UserActivity } from '@/models/user-activity.model';
 import { boostrapServer } from '@/server';
@@ -40,7 +40,7 @@ const boostrap = async () => {
 		}
 
 		for (const [, member] of [...guild.members.valueOf()]) {
-			createNewUser(member);
+			updateOrCreateUser(member);
 		}
 	});
 
@@ -53,7 +53,7 @@ const boostrap = async () => {
 		if (databaseUser && member) {
 			await databaseUser.update(new UserDTO(member));
 		} else if (member) {
-			await createNewUser(member);
+			await updateOrCreateUser(member);
 		}
 	});
 
@@ -64,7 +64,7 @@ const boostrap = async () => {
 
 		const user = await User.findByPk(presence.userId);
 		if (user === null) {
-			await createNewUser(presence.member);
+			await updateOrCreateUser(presence.member);
 			return;
 		}
 
@@ -72,7 +72,7 @@ const boostrap = async () => {
 	});
 
 	client.on('guildMemberAdd', (member) => {
-		void createNewUser(member);
+		void updateOrCreateUser(member);
 	});
 
 	client.on('guildMemberRemove', async (member) => {

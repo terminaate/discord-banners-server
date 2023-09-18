@@ -3,9 +3,11 @@ import { User } from '@/models/user.model';
 import { UserDTO } from '@/dto/user.dto';
 import { updateOrCreateActivity } from '@/utils/updateOrCreateActivity';
 
-export const createNewUser = async (member: GuildMember) => {
+export const updateOrCreateUser = async (member: GuildMember) => {
 	let user = await User.findByPk(member.id);
-	if (!user) {
+	if (user) {
+		await user.update(new UserDTO(member));
+	} else {
 		user = await User.create(new UserDTO(member));
 	}
 

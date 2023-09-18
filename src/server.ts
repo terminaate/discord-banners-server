@@ -38,7 +38,7 @@ export const boostrapServer = () => {
 	app.use(express.json());
 	app.use(bodyExceptionMiddleware);
 	app.use(morgan(process.env.NODE_ENV === 'dev' ? 'dev' : 'common'));
-	app.use('/widget', express.static(path.join(__dirname, '../static')));
+	app.use('/widget', express.static(path.join(__dirname, './static')));
 
 	app.listen(SERVER_PORT, () =>
 		console.log('Server listening on http://127.0.0.1:' + SERVER_PORT),
