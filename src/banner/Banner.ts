@@ -1,4 +1,3 @@
-import { UserModel } from '@/models/user.model';
 import {
 	Canvas,
 	CanvasRenderingContext2D,
@@ -8,7 +7,11 @@ import {
 } from 'canvas';
 import { ActivityType, PresenceStatus } from 'discord.js';
 import * as path from 'path';
-import { UserActivityModel } from '@/models/user-activity.model';
+import { UserDTO } from '@/dto/user.dto';
+import { UserActivityDTO } from '@/dto/user-activity.dto';
+
+// TODO
+// add customizations
 
 type Radius = {
 	tl: number;
@@ -25,10 +28,12 @@ const STATUS_COLORS: Record<PresenceStatus, string> = {
 	invisible: '#747f8d',
 };
 
+const ASSETS_PATH = path.resolve(__dirname, '../../assets/');
+
 const PUBLIC_FLAGS_IMAGES: Record<number, string> = {
-	64: path.resolve(__dirname, '../assets/icons/HypeSquad_Bravery.svg'),
-	128: path.resolve(__dirname, '../assets/icons/HypeSquad_Brilliance.svg'),
-	256: path.resolve(__dirname, '../assets/icons/HypeSquad_Balance.svg'),
+	64: path.resolve(ASSETS_PATH, 'icons/HypeSquad_Bravery.svg'),
+	128: path.resolve(ASSETS_PATH, 'icons/HypeSquad_Brilliance.svg'),
+	256: path.resolve(ASSETS_PATH, 'icons/HypeSquad_Balance.svg'),
 };
 
 const ACTIVITIES_TEXT: Partial<Record<ActivityType, string>> = {
@@ -39,7 +44,7 @@ const ACTIVITIES_TEXT: Partial<Record<ActivityType, string>> = {
 };
 
 type CanvasHeight = {
-	condition: (user: UserModel, userActivity?: UserActivityModel) => boolean;
+	condition: (user: UserDTO, userActivity?: UserActivityDTO) => boolean;
 	height: number;
 	isNeedToDrawSeparator: boolean;
 };
@@ -47,7 +52,7 @@ type CanvasHeight = {
 const CANVAS_HEIGHTS: CanvasHeight[] = [
 	{
 		condition(user, activity) {
-			const customStatus = user.getDataValue('customStatus');
+			const { customStatus } = user;
 			return typeof customStatus === 'string' && activity === undefined;
 		},
 		height: 330,
@@ -55,7 +60,7 @@ const CANVAS_HEIGHTS: CanvasHeight[] = [
 	},
 	{
 		condition(user, activity) {
-			const customStatus = user.getDataValue('customStatus');
+			const { customStatus } = user;
 			return !customStatus && activity === undefined;
 		},
 		height: 320,
@@ -63,7 +68,7 @@ const CANVAS_HEIGHTS: CanvasHeight[] = [
 	},
 	{
 		condition(user, activity) {
-			const customStatus = user.getDataValue('customStatus');
+			const { customStatus } = user;
 			return !customStatus && activity !== undefined;
 		},
 		height: 421,
@@ -161,8 +166,8 @@ export class Banner {
 	};
 
 	constructor(
-		private user: UserModel,
-		private userActivity?: UserActivityModel,
+		private user: UserDTO,
+		private userActivity?: UserActivityDTO,
 	) {
 		this.initCanvas();
 		this.registerFonts();
@@ -185,15 +190,12 @@ export class Banner {
 	}
 
 	private registerFonts() {
-		registerFont(
-			path.resolve(__dirname, '../assets/fonts/ABCGintoNormal.otf'),
-			{
-				family: 'ABCGintoNormal',
-				style: 'normal',
-				weight: '700',
-			},
-		);
-		registerFont(path.resolve(__dirname, '../assets/fonts/Whitney.otf'), {
+		registerFont(path.resolve(ASSETS_PATH, 'fonts/ABCGintoNormal.otf'), {
+			family: 'ABCGintoNormal',
+			style: 'normal',
+			weight: '700',
+		});
+		registerFont(path.resolve(ASSETS_PATH, 'fonts/Whitney.otf'), {
 			family: 'Whitney',
 			style: 'normal',
 		});
@@ -243,8 +245,8 @@ export class Banner {
 	}
 
 	private async drawBackground() {
-		const bannerURL = this.user.getDataValue('banner');
-		const accentColor = this.user.getDataValue('accentColor');
+		const bannerURL = this.user.banner;
+		const accentColor = this.user.accentColor;
 
 		if (bannerURL) {
 			const image = await loadImage(bannerURL);
@@ -308,7 +310,7 @@ export class Banner {
 		this.ctx.fill();
 
 		// Avatar
-		const avatarURL = this.user.getDataValue('avatar');
+		const avatarURL = this.user.avatar;
 		const avatarImage = await loadImage(avatarURL);
 		this.ctx.save();
 
@@ -335,7 +337,7 @@ export class Banner {
 	}
 
 	private drawStatus() {
-		const userStatus = this.user.getDataValue('status');
+		const userStatus = this.user.status;
 		if (!userStatus) {
 			return;
 		}
@@ -372,7 +374,7 @@ export class Banner {
 	}
 
 	private drawUsername() {
-		const username = this.user.getDataValue('username');
+		const { username } = this.user;
 
 		this.ctx.fillStyle = Banner.CONFIG.USERNAME.FILL_STYLE;
 		this.ctx.font = Banner.CONFIG.USERNAME.FONT;
@@ -384,7 +386,7 @@ export class Banner {
 	}
 
 	private async drawPublicFlags() {
-		const publicFlags = this.user.getDataValue('publicFlags');
+		const { publicFlags } = this.user;
 		if (!publicFlags) {
 			return;
 		}
@@ -401,13 +403,13 @@ export class Banner {
 	}
 
 	private async drawNitro() {
-		const premiumSince = this.user.getDataValue('premiumSince');
+		const { premiumSince } = this.user;
 		if (!premiumSince) {
 			return;
 		}
 
 		const nitroImage = await loadImage(
-			path.resolve(__dirname, '../assets/icons/nitro.svg'),
+			path.resolve(ASSETS_PATH, 'icons/nitro.svg'),
 		);
 
 		this.ctx.drawImage(
@@ -420,7 +422,7 @@ export class Banner {
 	}
 
 	private drawActivityType() {
-		const activityType = this.userActivity!.getDataValue('type');
+		const activityType = this.userActivity!.type;
 
 		this.ctx.fillStyle = Banner.CONFIG.ACTIVITY.TYPE.FILL_STYLE;
 		this.ctx.font = Banner.CONFIG.ACTIVITY.TYPE.FONT;
@@ -432,10 +434,11 @@ export class Banner {
 	}
 
 	private async drawActivityImage() {
-		const activityImageURL = this.userActivity!.getDataValue('image');
+		const activityImageURL = this.userActivity!.largeImageURL;
+
 		const defaultActivityImage = path.resolve(
-			__dirname,
-			'../assets/icons/activity.svg',
+			ASSETS_PATH,
+			'icons/activity.svg',
 		);
 
 		const activityImage = await loadImage(
@@ -450,7 +453,7 @@ export class Banner {
 	}
 
 	private drawActivityName() {
-		const activityName = this.userActivity!.getDataValue('name');
+		const activityName = this.userActivity!.name;
 
 		this.ctx.fillStyle = Banner.CONFIG.ACTIVITY.NAME.FILL_STYLE;
 		this.ctx.font = Banner.CONFIG.ACTIVITY.NAME.FONT;
@@ -462,8 +465,8 @@ export class Banner {
 	}
 
 	private drawActivityStartTime() {
-		const activityStartTime = this.userActivity!.getDataValue('start');
-		const activityType = this.userActivity!.getDataValue('type');
+		const activityStartTime = this.userActivity!.start;
+		const activityType = this.userActivity!.type;
 		if (!activityStartTime) {
 			return;
 		}
@@ -506,7 +509,7 @@ export class Banner {
 	}
 
 	private drawCustomStatus() {
-		const customStatus = this.user.getDataValue('customStatus');
+		const { customStatus } = this.user;
 		if (typeof customStatus !== 'string') {
 			return;
 		}
@@ -552,7 +555,7 @@ export class Banner {
 		);
 	}
 
-	static async create(user: UserModel, userActivity?: UserActivityModel) {
+	static async create(user: UserDTO, userActivity?: UserActivityDTO) {
 		const bannerInstance = new Banner(user, userActivity);
 
 		await bannerInstance.drawBackground();

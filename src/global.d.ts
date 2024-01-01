@@ -4,7 +4,7 @@ namespace NodeJS {
 	interface ProcessEnv {
 		SERVER_PORT: string;
 		NODE_ENV: 'dev' | 'prod';
-		BOT_TOKEN: stirng;
+		BOT_TOKEN: string;
 		GUILD_ID: string;
 	}
 }

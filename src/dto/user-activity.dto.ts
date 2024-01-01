@@ -1,18 +1,17 @@
-import { Activity, GuildMember } from 'discord.js';
-import { UserActivityProps } from '@/models/user-activity.model';
-
-export interface UserActivityDTO extends UserActivityProps {}
+import { Activity } from 'discord.js';
 
 export class UserActivityDTO {
-	constructor(activity: Activity, member: GuildMember) {
+	type: number;
+	name: string;
+	state: string | null;
+	largeImageURL?: string | null;
+	start?: Date | null;
+
+	constructor(activity: Activity) {
 		this.type = activity.type;
-		this.userId = member.id;
 		this.name = activity.name;
 		this.start = activity.timestamps?.start;
 		this.state = activity.state;
-
-		// TODO
-		// remove this field
-		this.image = undefined;
+		this.largeImageURL = activity.assets?.largeImageURL({ size: 128 });
 	}
 }

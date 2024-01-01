@@ -1,10 +1,17 @@
 import { ActivityType, GuildMember } from 'discord.js';
-import { UserProps } from '@/models/user.model';
 import { getMemberUsername } from '@/utils/getMemberUsername';
 
-export interface UserDTO extends UserProps {}
-
 export class UserDTO {
+	id: string;
+	username: string;
+	avatar: string;
+	banner?: string | null;
+	status?: string | null;
+	customStatus?: string | null;
+	publicFlags?: number | null;
+	accentColor?: string | null;
+	premiumSince?: number | null;
+
 	constructor(member: GuildMember) {
 		const username = getMemberUsername(member);
 
@@ -17,11 +24,8 @@ export class UserDTO {
 		this.accentColor = member.user.hexAccentColor ?? '#fff';
 		this.premiumSince = member.premiumSinceTimestamp;
 
-		this.customStatus = null;
-		member.presence?.activities.forEach((activity) => {
-			if (activity.type === ActivityType.Custom) {
-				this.customStatus = activity.state;
-			}
-		});
+		this.customStatus = member.presence?.activities.find(
+			(activity) => activity.type === ActivityType.Custom,
+		)?.state;
 	}
 }
