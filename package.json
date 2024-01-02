@@ -4,13 +4,12 @@
   "description": "Discord banners",
   "main": "dist/index.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=prod node -r module-alias/register ./dist/index.js",
+    "start:prod": "cross-env NODE_ENV=prod node ./dist/index.js",
     "start:dev": "tsc-watch --project . --onSuccess \"cross-env NODE_ENV=dev node -r module-alias/register ./dist/index.js\"",
     "format": "prettier --write \"src/**/*\"",
     "lint": "eslint -c .eslintrc.js --ext .ts ./src",
-    "build": "npm run build:clean && tsc && tsc-alias -p tsconfig.json && npm run build:assets",
+    "build": "npm run build:clean && tsc && tsc-alias -p tsconfig.json",
     "build:clean": "rimraf dist",
-    "build:assets": "tscp",
     "new:module": "hygen new module"
   },
   "repository": "https://github.com/terminaate/game-store-server",
@@ -33,14 +32,12 @@
     "eslint-import-resolver-typescript": "^3.6.0",
     "eslint-plugin-import": "^2.28.1",
     "husky": "^8.0.3",
-    "module-alias": "^2.2.3",
     "prettier": "^3.0.3",
     "rimraf": "^5.0.1",
     "ts-node": "^10.9.1",
     "tsc-alias": "^1.8.7",
     "tsc-watch": "^6.0.4",
-    "typescript": "^5.2.2",
-    "typescript-cp": "^0.1.9"
+    "typescript": "^5.2.2"
   },
   "dependencies": {
     "canvas": "^2.11.2",
@@ -48,9 +45,7 @@
     "discord.js": "^14.13.0",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "morgan": "^1.10.0",
-    "sequelize": "^6.33.0",
-    "sqlite3": "^5.1.6"
+    "morgan": "^1.10.0"
   },
   "_moduleAliases": {
     "@": "./dist"
