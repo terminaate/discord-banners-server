@@ -1,4 +1,4 @@
-FROM node:alpine
+FROM node:alpine as base
 LABEL authors="tntwn"
 
 WORKDIR /usr/src/app
@@ -27,6 +27,6 @@ RUN npm i --force
 
 RUN npm run build
 
-EXPOSE 8080
+EXPOSE 3001
 
 CMD [ "npm", "run", "start:prod" ]

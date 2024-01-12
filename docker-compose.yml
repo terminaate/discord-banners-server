@@ -1,13 +1,13 @@
 version: "3.9"
 
 services:
-  server:
-    container_name: server
-    image: server
+  app:
+    container_name: app
+    image: app
     restart: always
     build:
       context: .
       dockerfile: Dockerfile
       target: base
     ports:
-      - "${PORT}:${PORT}"
+      - "${SERVER_PORT}:${SERVER_PORT}"
