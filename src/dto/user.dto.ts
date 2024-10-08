@@ -1,4 +1,4 @@
-import { ActivityType, GuildMember } from 'discord.js';
+import { ActivityType, GuildMember, HexColorString } from 'discord.js';
 import { getMemberUsername } from '@/utils/getMemberUsername';
 
 export class UserDTO {
@@ -21,11 +21,22 @@ export class UserDTO {
 		this.banner = member.user.bannerURL({ size: 1024, extension: 'png' });
 		this.status = member.presence?.status;
 		this.publicFlags = member.user.flags?.bitfield;
-		this.accentColor = member.user.hexAccentColor ?? '#fff';
+		this.accentColor = member.displayHexColor ?? '#fff';
 		this.premiumSince = member.premiumSinceTimestamp;
 
 		this.customStatus = member.presence?.activities.find(
 			(activity) => activity.type === ActivityType.Custom,
 		)?.state;
+	}
+
+	static async create(member: GuildMember) {
+		const user = await member.client.users.fetch(member, { force: true });
+
+		const dto = new UserDTO(member);
+
+		dto.accentColor = user.hexAccentColor ?? '#fff';
+		dto.banner = member.user.bannerURL({ size: 1024, extension: 'png' });
+
+		return dto;
 	}
 }

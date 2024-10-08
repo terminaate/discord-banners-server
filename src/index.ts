@@ -3,8 +3,6 @@ import * as process from 'process';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { boostrapServer } from '@/server';
 import { createBanner } from '@/utils/createBanner';
-import fs from 'fs';
-import path from 'path';
 
 dotenv.config({ path: `.${process.env.NODE_ENV}.env` });
 
@@ -54,10 +52,6 @@ const boostrap = async () => {
 
 	client.on('guildMemberAdd', (member) => {
 		createBanner(member, member.presence?.activities);
-	});
-
-	client.on('guildMemberRemove', async (member) => {
-		fs.rmSync(path.resolve(__dirname, `../static/${member.id}.png`));
 	});
 
 	await client.login(process.env.BOT_TOKEN);

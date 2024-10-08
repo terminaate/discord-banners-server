@@ -1,8 +1,7 @@
 import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
 import morgan from 'morgan';
-import path from 'path';
-import { createStaticFolder } from '@/utils/createStaticFolder';
+import { userBanners } from '@/utils/createBanner';
 
 class ResponseDTO {
 	constructor(
@@ -29,8 +28,6 @@ const bodyExceptionMiddleware = (
 export const boostrapServer = () => {
 	const app = express();
 
-	createStaticFolder();
-
 	const { SERVER_PORT } = process.env;
 
 	app.disable('x-powered-by');
@@ -38,7 +35,15 @@ export const boostrapServer = () => {
 	app.use(express.json());
 	app.use(bodyExceptionMiddleware);
 	app.use(morgan(process.env.NODE_ENV === 'dev' ? 'dev' : 'common'));
-	app.use('/widget', express.static(path.join(__dirname, './static')));
+	// app.use('/widget', express.static(path.join(__dirname, './static')));
+
+	app.get('/widget/:memberId', (req, res) => {
+		// const widgets = Object.values(userBanners);
+
+		// console.log(Object.keys(userBanners), req.params.memberId);
+
+		res.send(userBanners[req.params.memberId]);
+	});
 
 	app.listen(SERVER_PORT, () =>
 		console.log('Server listening on http://127.0.0.1:' + SERVER_PORT),

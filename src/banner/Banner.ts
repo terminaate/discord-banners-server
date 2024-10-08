@@ -43,20 +43,19 @@ const ACTIVITIES_TEXT: Partial<Record<ActivityType, string>> = {
 	[ActivityType.Watching]: 'WATCHING',
 };
 
-type CanvasHeight = {
+type CanvasAdaptiveHeight = {
 	condition: (user: UserDTO, userActivity?: UserActivityDTO) => boolean;
 	height: number;
-	isNeedToDrawSeparator: boolean;
+	separator?: boolean;
 };
 
-const CANVAS_HEIGHTS: CanvasHeight[] = [
+const CanvasAdaptiveHeights: CanvasAdaptiveHeight[] = [
 	{
 		condition(user, activity) {
 			const { customStatus } = user;
 			return typeof customStatus === 'string' && activity === undefined;
 		},
 		height: 330,
-		isNeedToDrawSeparator: false,
 	},
 	{
 		condition(user, activity) {
@@ -64,7 +63,6 @@ const CANVAS_HEIGHTS: CanvasHeight[] = [
 			return !customStatus && activity === undefined;
 		},
 		height: 320,
-		isNeedToDrawSeparator: false,
 	},
 	{
 		condition(user, activity) {
@@ -72,7 +70,7 @@ const CANVAS_HEIGHTS: CanvasHeight[] = [
 			return !customStatus && activity !== undefined;
 		},
 		height: 421,
-		isNeedToDrawSeparator: true,
+		separator: true,
 	},
 ];
 
@@ -80,8 +78,9 @@ export class Banner {
 	private canvas: Canvas;
 	private ctx: CanvasRenderingContext2D;
 	private heightScale = 1;
-	private isNeedToDrawSeparator = true;
-	private static CONFIG = {
+	private separator = true;
+
+	private static readonly CONFIG = {
 		CANVAS: {
 			WIDTH: 961,
 			DEFAULT_HEIGHT: 466,
@@ -174,13 +173,14 @@ export class Banner {
 	}
 
 	private initCanvas() {
-		const heightCandidate = CANVAS_HEIGHTS.find((o) =>
+		const heightCandidate = CanvasAdaptiveHeights.find((o) =>
 			o.condition(this.user, this.userActivity),
 		);
+
 		let height = Banner.CONFIG.CANVAS.DEFAULT_HEIGHT;
 		if (heightCandidate) {
 			height = heightCandidate.height;
-			this.isNeedToDrawSeparator = heightCandidate.isNeedToDrawSeparator;
+			this.separator = !!heightCandidate.separator;
 		}
 
 		this.heightScale = height / Banner.CONFIG.CANVAS.DEFAULT_HEIGHT;
@@ -542,7 +542,7 @@ export class Banner {
 	}
 
 	private drawSeparator() {
-		if (!this.isNeedToDrawSeparator) {
+		if (!this.separator) {
 			return;
 		}
 
