@@ -4,8 +4,7 @@ package-lock.json
 .idea
 .vscode
 coverage
-.prod.env
 *.local
 *.local.env
-.dev.env
-db
+*.env
+.env
