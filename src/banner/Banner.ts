@@ -75,11 +75,6 @@ const CanvasAdaptiveHeights: CanvasAdaptiveHeight[] = [
 ];
 
 export class Banner {
-	private canvas: Canvas;
-	private ctx: CanvasRenderingContext2D;
-	private heightScale = 1;
-	private separator = true;
-
 	private static readonly CONFIG = {
 		CANVAS: {
 			WIDTH: 961,
@@ -163,6 +158,10 @@ export class Banner {
 			Y: 310,
 		},
 	};
+	private canvas: Canvas;
+	private ctx: CanvasRenderingContext2D;
+	private heightScale = 1;
+	private separator = true;
 
 	constructor(
 		private user: UserDTO,
@@ -170,6 +169,23 @@ export class Banner {
 	) {
 		this.initCanvas();
 		this.registerFonts();
+	}
+
+	static async create(user: UserDTO, userActivity?: UserActivityDTO) {
+		const bannerInstance = new Banner(user, userActivity);
+
+		await bannerInstance.drawBackground();
+		bannerInstance.drawInfoBackground();
+		await bannerInstance.drawAvatar();
+		bannerInstance.drawStatus();
+		bannerInstance.drawUsername();
+		await bannerInstance.drawPublicFlags();
+		await bannerInstance.drawNitro();
+		await bannerInstance.drawActivity();
+		bannerInstance.drawCustomStatus();
+		bannerInstance.drawSeparator();
+
+		return bannerInstance.canvas;
 	}
 
 	private initCanvas() {
@@ -553,22 +569,5 @@ export class Banner {
 			Banner.CONFIG.SEPARATOR.WIDTH,
 			Banner.CONFIG.SEPARATOR.HEIGHT,
 		);
-	}
-
-	static async create(user: UserDTO, userActivity?: UserActivityDTO) {
-		const bannerInstance = new Banner(user, userActivity);
-
-		await bannerInstance.drawBackground();
-		bannerInstance.drawInfoBackground();
-		await bannerInstance.drawAvatar();
-		bannerInstance.drawStatus();
-		bannerInstance.drawUsername();
-		await bannerInstance.drawPublicFlags();
-		await bannerInstance.drawNitro();
-		await bannerInstance.drawActivity();
-		bannerInstance.drawCustomStatus();
-		bannerInstance.drawSeparator();
-
-		return bannerInstance.canvas;
 	}
 }

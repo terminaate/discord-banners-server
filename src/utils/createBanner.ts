@@ -23,9 +23,4 @@ export const createBanner = async (
   <image href="${dataUrl}" height="${canvas.height}" width="${canvas.width}" />
 </svg>
 `;
-
-	// fs.writeFileSync(
-	// 	path.resolve(__dirname, `../static/${member.id}.png`),
-	// 	canvas!.toBuffer('image/png'),
-	// );
 };

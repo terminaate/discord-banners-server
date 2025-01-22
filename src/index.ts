@@ -4,7 +4,7 @@ import { Client, GatewayIntentBits } from 'discord.js';
 import { boostrapServer } from '@/server';
 import { createBanner } from '@/utils/createBanner';
 
-dotenv.config({ path: `.${process.env.NODE_ENV}.env` });
+dotenv.config({ path: `.env` });
 
 const boostrap = async () => {
 	const client = new Client({
@@ -15,8 +15,6 @@ const boostrap = async () => {
 			GatewayIntentBits.GuildMessages,
 		],
 	});
-
-	// await connectToDB();
 
 	client.on('ready', () => {
 		console.log(`Logged in as ${client.user?.tag}!`);

@@ -1,4 +1,4 @@
-import { ActivityType, GuildMember, HexColorString } from 'discord.js';
+import { ActivityType, GuildMember } from 'discord.js';
 import { getMemberUsername } from '@/utils/getMemberUsername';
 
 export class UserDTO {
