@@ -15,12 +15,9 @@ export const updateBanner = async (
 		activity ? new UserActivityDTO(activity) : undefined,
 	);
 
-	await redisClient.set(
-		String(member.id),
-		`
-	<svg width="${canvas.width}" height="${canvas.height}" xmlns="http://www.w3.org/2000/svg">
-	  <image href="${canvas.toDataURL()}" height="${canvas.height}" width="${canvas.width}" />
-	</svg>
-	`,
-	);
+	const res = `<svg width="${canvas.width}" height="${canvas.height}" xmlns="http://www.w3.org/2000/svg"><image href="${canvas.toDataURL()}" height="${canvas.height}" width="${canvas.width}" /></svg>`;
+
+	await redisClient.set(String(member.id), res);
+
+	return res;
 };

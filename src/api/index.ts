@@ -2,6 +2,8 @@ import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
 import morgan from 'morgan';
 import { redisClient } from '@/redis';
+import { updateBanner } from '@/banner/updateBanner';
+import { getMemberById } from '@/bot/getMemberById';
 
 // import { userBanners } from '@/banner/updateBanner';
 
@@ -39,10 +41,24 @@ export const startServer = () => {
 	app.use(morgan(process.env.NODE_ENV === 'dev' ? 'dev' : 'common'));
 
 	app.get('/widget/:memberId', async (req, res) => {
-		// res.header('Content-Type', 'image/png');
-		// userBanners[req.params.memberId].pipe(res);
-		// res.send();
-		res.send(await redisClient.get(req.params.memberId));
+		const cachedWidget = await redisClient.get(req.params.memberId);
+
+		if (cachedWidget) {
+			res.status(200);
+			res.send(cachedWidget);
+			return;
+		}
+
+		const candidate = await getMemberById(req.params.memberId);
+		if (!candidate) {
+			res.status(404);
+			return res.send('User not found');
+		}
+
+		const svg = await updateBanner(candidate, candidate.presence?.activities);
+
+		res.status(200);
+		res.send(svg);
 	});
 
 	app.listen(SERVER_PORT, () =>
