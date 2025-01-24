@@ -1,7 +1,9 @@
 import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
 import morgan from 'morgan';
-import { userBanners } from '@/utils/createBanner';
+import { redisClient } from '@/redis';
+
+// import { userBanners } from '@/banner/updateBanner';
 
 class ResponseDTO {
 	constructor(
@@ -25,7 +27,7 @@ const bodyExceptionMiddleware = (
 	next();
 };
 
-export const boostrapServer = () => {
+export const startServer = () => {
 	const app = express();
 
 	const { SERVER_PORT } = process.env;
@@ -36,8 +38,11 @@ export const boostrapServer = () => {
 	app.use(bodyExceptionMiddleware);
 	app.use(morgan(process.env.NODE_ENV === 'dev' ? 'dev' : 'common'));
 
-	app.get('/widget/:memberId', (req, res) => {
-		res.send(userBanners[req.params.memberId]);
+	app.get('/widget/:memberId', async (req, res) => {
+		// res.header('Content-Type', 'image/png');
+		// userBanners[req.params.memberId].pipe(res);
+		// res.send();
+		res.send(await redisClient.get(req.params.memberId));
 	});
 
 	app.listen(SERVER_PORT, () =>

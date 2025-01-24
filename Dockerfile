@@ -1,7 +1,6 @@
-FROM node:alpine as base
-LABEL authors="tntwn"
+FROM node:alpine AS base
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
 COPY package*.json ./
 
@@ -23,7 +22,7 @@ RUN apk add \
     gcompat \
     librsvg-dev
 
-RUN npm i --force
+RUN npm i
 
 RUN npm run build
 
