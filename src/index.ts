@@ -1,8 +1,6 @@
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import { startBot } from '@/bot';
 import { startServer } from '@/api';
-
-dotenv.config({ path: `.env` });
 
 export const main = async () => {
 	await startBot();
