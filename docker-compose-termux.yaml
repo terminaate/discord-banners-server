@@ -2,10 +2,7 @@ name: discord-banners-server
 
 services:
   server:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: server
+    image: discord-banners-server-image
     network_mode: host
     env_file:
       - .env
