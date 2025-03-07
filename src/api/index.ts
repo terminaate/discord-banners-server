@@ -45,10 +45,7 @@ export const startServer = () => {
 
 		if (cachedWidget) {
 			res.setHeader('Content-Type', 'image/svg+xml');
-			res.setHeader(
-				'Cache-Control',
-				'no-store, no-cache, must-revalidate, private',
-			);
+			res.setHeader('Cache-Control', 'max-age=30000');
 			res.status(200);
 			res.send(cachedWidget);
 
@@ -64,10 +61,7 @@ export const startServer = () => {
 		const svg = await updateBanner(candidate, candidate.presence?.activities);
 
 		res.setHeader('Content-Type', 'image/svg+xml');
-		res.setHeader(
-			'Cache-Control',
-			'no-store, no-cache, must-revalidate, private',
-		);
+		res.setHeader('Cache-Control', 'max-age=30000');
 		res.status(200);
 		res.send(svg);
 	});
