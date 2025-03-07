@@ -44,9 +44,14 @@ export const startServer = () => {
 		const cachedWidget = await redisClient.get(req.params.memberId);
 
 		if (cachedWidget) {
-			res.header('Content-Type', 'image/svg+xml');
+			res.setHeader('Content-Type', 'image/svg+xml');
+			res.setHeader(
+				'Cache-Control',
+				'no-store, no-cache, must-revalidate, private',
+			);
 			res.status(200);
 			res.send(cachedWidget);
+
 			return;
 		}
 
@@ -58,7 +63,11 @@ export const startServer = () => {
 
 		const svg = await updateBanner(candidate, candidate.presence?.activities);
 
-		res.header('Content-Type', 'image/svg+xml');
+		res.setHeader('Content-Type', 'image/svg+xml');
+		res.setHeader(
+			'Cache-Control',
+			'no-store, no-cache, must-revalidate, private',
+		);
 		res.status(200);
 		res.send(svg);
 	});
