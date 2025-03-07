@@ -466,6 +466,9 @@ export class Banner {
 			activityImage,
 			Banner.CONFIG.START_CONTENT_X,
 			Banner.CONFIG.ACTIVITY.IMAGE.Y * this.heightScale,
+			// TODO: move these to constants
+			45,
+			45,
 		);
 	}
 
