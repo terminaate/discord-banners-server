@@ -9,8 +9,12 @@ export const getMemberById = async (
 		return;
 	}
 
+	const candidate = guild.members.cache.find(
+		(o) => o.user.id === userId || o.user.username == userId,
+	);
+
 	try {
-		return await guild.members.fetch({ user: userId });
+		return candidate || (await guild.members.fetch({ user: userId }));
 	} catch (e) {
 		return;
 	}

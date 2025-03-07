@@ -18,6 +18,7 @@ export const updateBanner = async (
 	const res = `<svg width="${canvas.width}" height="${canvas.height}" xmlns="http://www.w3.org/2000/svg"><image href="${canvas.toDataURL()}" height="${canvas.height}" width="${canvas.width}" /></svg>`;
 
 	await redisClient.set(String(member.id), res);
+	await redisClient.set(member.user.username, res);
 
 	return res;
 };
