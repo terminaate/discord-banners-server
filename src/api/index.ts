@@ -4,8 +4,7 @@ import morgan from 'morgan';
 import { redisClient } from '@/redis';
 import { updateBanner } from '@/banner/updateBanner';
 import { getMemberById } from '@/bot/getMemberById';
-
-// import { userBanners } from '@/banner/updateBanner';
+import { query, validationResult } from 'express-validator';
 
 class ResponseDTO {
 	constructor(
@@ -40,31 +39,46 @@ export const startServer = () => {
 	app.use(bodyExceptionMiddleware);
 	app.use(morgan(process.env.NODE_ENV === 'dev' ? 'dev' : 'common'));
 
-	app.get('/widget/:memberId', async (req, res) => {
-		const cachedWidget = await redisClient.get(req.params.memberId);
+	app.get(
+		'/widget/:memberId',
+		query('cache').optional().isBoolean().toBoolean(),
+		async (req: Request<{ memberId: string }>, res) => {
+			const validationErrors = validationResult(req);
+			if (!validationErrors.isEmpty()) {
+				res.json({ errors: validationErrors.array() });
+				return;
+			}
 
-		if (cachedWidget) {
+			const needToCacheResponse = req.query.cache;
+			const cacheHeader = needToCacheResponse
+				? 'max-age=30000'
+				: 'no-store, no-cache, must-revalidate';
+
+			const cachedWidget = await redisClient.get(req.params.memberId);
+
+			if (cachedWidget) {
+				res.setHeader('Content-Type', 'image/svg+xml');
+				res.setHeader('Cache-Control', cacheHeader);
+				res.status(200);
+				res.send(cachedWidget);
+
+				return;
+			}
+
+			const candidate = await getMemberById(req.params.memberId);
+			if (!candidate) {
+				res.status(404);
+				return res.send('User not found');
+			}
+
+			const svg = await updateBanner(candidate, candidate.presence?.activities);
+
 			res.setHeader('Content-Type', 'image/svg+xml');
-			res.setHeader('Cache-Control', 'max-age=30000');
+			res.setHeader('Cache-Control', cacheHeader);
 			res.status(200);
-			res.send(cachedWidget);
-
-			return;
-		}
-
-		const candidate = await getMemberById(req.params.memberId);
-		if (!candidate) {
-			res.status(404);
-			return res.send('User not found');
-		}
-
-		const svg = await updateBanner(candidate, candidate.presence?.activities);
-
-		res.setHeader('Content-Type', 'image/svg+xml');
-		res.setHeader('Cache-Control', 'max-age=30000');
-		res.status(200);
-		res.send(svg);
-	});
+			res.send(svg);
+		},
+	);
 
 	app.listen(SERVER_PORT, () =>
 		console.log(`Server listening on http://127.0.0.1:${SERVER_PORT}`),
