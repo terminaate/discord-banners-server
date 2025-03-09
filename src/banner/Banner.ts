@@ -464,10 +464,6 @@ export class Banner {
 
 		this.ctx.drawImage(
 			activityImage,
-			activityImage.width / 2,
-			activityImage.height / 2,
-			activityImage.width,
-			activityImage.height,
 			Banner.CONFIG.START_CONTENT_X,
 			Banner.CONFIG.ACTIVITY.IMAGE.Y * this.heightScale,
 			// TODO: move these to constants
