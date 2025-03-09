@@ -3,11 +3,15 @@ import { UserDTO } from '@/dto/user.dto';
 import { BorderRadius } from '@/types/BorderRadius';
 import { UserActivityDTO } from '@/dto/user-activity.dto';
 import {
+	ActivitiesText,
+	AssetsPath,
 	BannerColors,
 	BannerDynamicHeights,
+	PublicFlagsImages,
 	StatusColors,
 } from '@/banner/const';
 import { BaseCanvas } from '@/banner/BaseCanvas';
+import path from 'path';
 
 type UserDataForCanvas = {
 	user: UserDTO;
@@ -37,16 +41,23 @@ export class Banner {
 	static async create(user: UserDTO, activity?: UserActivityDTO) {
 		const userData: UserDataForCanvas = { user, activity };
 
-		const { canvas } = new Banner(userData);
+		const { canvas, separator } = new Banner(userData);
 
+		// TODO: maybe optimize this
 		const layers = [
 			new BannerBackground(canvas),
 			new BannerAvatar(canvas),
 			new BannerStatus(canvas),
+			new BannerUsername(canvas),
+			new BannerPublicFlags(canvas),
+			new BannerNitro(canvas),
+			new BannerActivity(canvas),
+			new BannerCustomStatus(canvas),
+			separator ? new BannerSeparator(canvas) : undefined,
 		];
 
 		for (const layer of layers) {
-			await layer.render(userData);
+			await layer?.render(userData);
 		}
 
 		return canvas;
@@ -233,7 +244,7 @@ class BannerStatus extends BaseBannerEntity {
 		super();
 	}
 
-	async render({ user }: UserDataForCanvas): Promise<void> {
+	render({ user }: UserDataForCanvas): void {
 		const userStatus = user.status;
 		if (!userStatus) {
 			return;
@@ -259,6 +270,273 @@ class BannerStatus extends BaseBannerEntity {
 			radius: this.backgroundRadius,
 			fill: true,
 			stroke: false,
+		});
+	}
+}
+
+const START_CONTENT_X = 262;
+
+class BannerUsername extends BaseBannerEntity {
+	y = 234;
+	x = START_CONTENT_X;
+
+	width?: number;
+	height?: number;
+
+	fillStyle = '#fff';
+	font = "34px 'ABCGintoNormal'";
+
+	constructor(private canvas: BaseCanvas) {
+		super();
+	}
+
+	render({ user }: UserDataForCanvas) {
+		const { username } = user;
+
+		this.canvas.fillStyle = this.fillStyle;
+		this.canvas.font = this.font;
+		this.canvas.fillText({
+			text: username,
+			x: this.x,
+			y: this.y,
+		});
+	}
+}
+
+class BannerPublicFlags extends BaseBannerEntity {
+	x = 901;
+	y = 212;
+	width = 24;
+	height = 24;
+
+	constructor(private canvas: BaseCanvas) {
+		super();
+
+		this.x = this.canvas.width - 60;
+	}
+
+	async render({ user }: UserDataForCanvas): Promise<void> {
+		const { publicFlags } = user;
+		if (!publicFlags) {
+			return;
+		}
+
+		const hypesquadImage = await loadImage(PublicFlagsImages[publicFlags]);
+
+		this.canvas.ctx.drawImage(
+			hypesquadImage,
+			this.x,
+			this.y,
+			this.width,
+			this.height,
+		);
+	}
+}
+
+class BannerNitro extends BaseBannerEntity {
+	x = 857;
+	y = 212;
+	width = 34;
+	height = 24;
+
+	constructor(private canvas: BaseCanvas) {
+		super();
+
+		this.x = this.canvas.width - 104;
+	}
+
+	async render({ user }: UserDataForCanvas): Promise<void> {
+		const { premiumSince } = user;
+		if (!premiumSince) {
+			return;
+		}
+
+		const nitroImage = await loadImage(
+			path.resolve(AssetsPath, 'icons/nitro.svg'),
+		);
+
+		this.canvas.ctx.drawImage(
+			nitroImage,
+			this.x,
+			this.y,
+			this.width,
+			this.height,
+		);
+	}
+}
+
+// TODO: MOVE ALL COLORS TO BannerColors VARIABLE
+
+class BannerActivity extends BaseBannerEntity {
+	x = START_CONTENT_X;
+	y = 371;
+
+	width?: number;
+	height?: number;
+
+	activityTypeFont = "18px 'ABCGintoNormal'";
+	activityTypeFillStyle = '#B9BBBE';
+
+	activityImageY = 384;
+
+	// TODO?: refactor these variables
+	activityNameFont = "normal 500 18px 'ABCGintoNormal'";
+	activityNameFillStyle = '#B2B2B4';
+	activityNameY = 402;
+	activityNameX = 312;
+
+	activityStartTimeFont = "18px 'Whitney'";
+	activityStartTimeFillStyle = '#B2B2B4';
+	activityStartTimeX = 312;
+	activityStartTimeY = 422;
+
+	constructor(private canvas: BaseCanvas) {
+		super();
+	}
+
+	async render({ activity }: UserDataForCanvas): Promise<void> {
+		if (!activity) {
+			return;
+		}
+
+		this.drawActivityType(activity);
+		await this.drawActivityImage(activity);
+		this.drawActivityName(activity);
+		this.drawActivityStartTime(activity);
+	}
+
+	private drawActivityType(activity: UserActivityDTO) {
+		const activityType = activity.type;
+
+		this.canvas.fillStyle = this.activityTypeFillStyle;
+		this.canvas.font = this.activityTypeFont;
+		this.canvas.fillText({
+			text: ActivitiesText[activityType],
+			x: this.x,
+			y: this.y,
+			relativeToHeight: true,
+		});
+	}
+
+	private async drawActivityImage(activity: UserActivityDTO) {
+		const defaultActivityImage = path.resolve(AssetsPath, 'icons/activity.svg');
+
+		const activityImageURL = activity.largeImageURL ?? defaultActivityImage;
+		const activityImage = await loadImage(activityImageURL);
+
+		// TODO: maybe replace this with my own abstract method
+		this.canvas.ctx.drawImage(
+			activityImage,
+			this.x,
+			this.activityImageY * this.canvas.heightScale,
+		);
+	}
+
+	private drawActivityName(activity: UserActivityDTO) {
+		const activityName = activity.name;
+
+		this.canvas.fillStyle = this.activityNameFillStyle;
+		this.canvas.font = this.activityNameFont;
+		this.canvas.fillText({
+			text: activityName,
+			x: this.activityNameX,
+			y: this.activityNameY,
+			relativeToHeight: true,
+		});
+	}
+
+	private drawActivityStartTime(activity: UserActivityDTO) {
+		const activityStartTime = activity.start;
+		const activityType = activity.type;
+		if (!activityStartTime) {
+			return;
+		}
+
+		const startTimestamp = +activityStartTime;
+
+		const currentTime = +new Date();
+		const differenceInMin = (currentTime - startTimestamp) / 100_000;
+		const differenceInHour = (currentTime - startTimestamp) / 100_000 / 60;
+		let timeText: string =
+			'Just started ' + ActivitiesText[activityType].toLowerCase();
+
+		if (differenceInMin >= 1) {
+			timeText = `for ${Math.ceil(differenceInMin)} minutes`;
+		}
+
+		if (differenceInHour >= 1) {
+			timeText = `for ${Math.ceil(differenceInHour)} hours`;
+		}
+
+		this.canvas.fillStyle = this.activityStartTimeFillStyle;
+		this.canvas.font = this.activityStartTimeFont;
+		this.canvas.fillText({
+			text: timeText,
+			x: this.activityStartTimeX,
+			y: this.activityStartTimeY,
+			relativeToHeight: true,
+		});
+	}
+}
+
+class BannerCustomStatus extends BaseBannerEntity {
+	x = START_CONTENT_X;
+	y = 269;
+
+	width?: number;
+	height?: number;
+
+	maxLength = 45;
+	fillStyle = '#B2B2B4';
+	font = "18px 'Whitney'";
+
+	constructor(private canvas: BaseCanvas) {
+		super();
+	}
+
+	render({ user }: UserDataForCanvas): void {
+		const { customStatus } = user;
+		if (typeof customStatus !== 'string') {
+			return;
+		}
+
+		let text = customStatus;
+
+		if (text.length > this.maxLength) {
+			text = text.slice(0, this.maxLength) + '...';
+			console.log('its working', text);
+		}
+
+		this.canvas.fillStyle = this.fillStyle;
+		this.canvas.font = this.font;
+		this.canvas.fillText({
+			text,
+			x: this.x,
+			y: this.y,
+		});
+	}
+}
+
+class BannerSeparator extends BaseBannerEntity {
+	x = START_CONTENT_X;
+	y = 310;
+	height = 1;
+	width = 663;
+
+	fillStyle = 'rgba(255, 255, 255, 0.1)';
+
+	constructor(private canvas: BaseCanvas) {
+		super();
+	}
+
+	render(): void {
+		this.canvas.fillStyle = this.fillStyle;
+		this.canvas.fillRect({
+			x: this.x,
+			y: this.y,
+			width: this.width,
+			height: this.height,
+			relativeToHeight: true,
 		});
 	}
 }
