@@ -3,6 +3,7 @@ import { redisClient } from '@/redis';
 import { Banner } from '@/banner/Banner';
 import { UserDTO } from '@/dto/user.dto';
 import { UserActivityDTO } from '@/dto/user-activity.dto';
+import * as fs from 'node:fs';
 
 export const updateBanner = async (
 	member: GuildMember,
@@ -19,6 +20,9 @@ export const updateBanner = async (
 
 	await redisClient.set(String(member.id), res);
 	await redisClient.set(member.user.username, res);
+
+	console.log('writing image');
+	fs.writeFileSync('./test.svg', canvas.toBuffer());
 
 	return res;
 };
