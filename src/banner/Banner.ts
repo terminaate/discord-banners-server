@@ -2,7 +2,11 @@ import { CanvasRenderingContext2D, loadImage } from 'canvas';
 import { UserDTO } from '@/dto/user.dto';
 import { BorderRadius } from '@/types/BorderRadius';
 import { UserActivityDTO } from '@/dto/user-activity.dto';
-import { BannerColors, BannerDynamicHeights } from '@/banner/const';
+import {
+	BannerColors,
+	BannerDynamicHeights,
+	StatusColors,
+} from '@/banner/const';
 import { BaseCanvas } from '@/banner/BaseCanvas';
 
 type UserDataForCanvas = {
@@ -10,7 +14,7 @@ type UserDataForCanvas = {
 	activity?: UserActivityDTO;
 };
 
-class BannerCanvas {
+export class Banner {
 	public width = 961;
 	public height = 466;
 	public borderRadius: BorderRadius = 14;
@@ -28,6 +32,24 @@ class BannerCanvas {
 		this.activity = userData.activity;
 
 		this.initCanvas();
+	}
+
+	static async create(user: UserDTO, activity?: UserActivityDTO) {
+		const userData: UserDataForCanvas = { user, activity };
+
+		const { canvas } = new Banner(userData);
+
+		const layers = [
+			new BannerBackground(canvas),
+			new BannerAvatar(canvas),
+			new BannerStatus(canvas),
+		];
+
+		for (const layer of layers) {
+			await layer.render(userData);
+		}
+
+		return canvas;
 	}
 
 	private calculateHeight() {
@@ -197,18 +219,46 @@ class BannerAvatar extends BaseBannerEntity {
 	}
 }
 
-export class Banner {
-	static async create(user: UserDTO, activity?: UserActivityDTO) {
-		const userData: UserDataForCanvas = { user, activity };
+class BannerStatus extends BaseBannerEntity {
+	x = 206.5;
+	y = 270.5;
 
-		const { canvas } = new BannerCanvas(userData);
+	width?: number;
+	height?: number;
 
-		const layers = [new BannerBackground(canvas), new BannerAvatar(canvas)];
+	backgroundRadius = 27.5;
+	radius = 17.5;
 
-		for (const layer of layers) {
-			await layer.render(userData);
+	constructor(private canvas: BaseCanvas) {
+		super();
+	}
+
+	async render({ user }: UserDataForCanvas): Promise<void> {
+		const userStatus = user.status;
+		if (!userStatus) {
+			return;
 		}
 
-		return canvas;
+		this.drawBackground();
+
+		this.canvas.fillStyle = StatusColors[userStatus];
+		this.canvas.fillCircle({
+			x: this.x,
+			y: this.y,
+			radius: this.radius,
+			fill: true,
+			stroke: false,
+		});
+	}
+
+	private drawBackground() {
+		this.canvas.fillStyle = BannerColors.INFO_COLOR;
+		this.canvas.fillCircle({
+			x: this.x,
+			y: this.y,
+			radius: this.backgroundRadius,
+			fill: true,
+			stroke: false,
+		});
 	}
 }
