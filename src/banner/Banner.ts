@@ -232,19 +232,19 @@ class BannerAvatar extends BaseBannerEntity {
 		console.log('drawing decoration');
 
 		const decorationURL =
-			'https://cdn.discordapp.com/avatar-decoration-presets/a_9bc421cef4bdcfffeb2344b44ad91b44?passtrough=true';
+			'https://cdn.discordapp.com/avatar-decoration-presets/a_da532f804b47f1681006c2996eb07b2a?passtrough=true';
 		const decorationImage = await loadImage(decorationURL);
 
-		const originalHeight = 288;
-
+		// TODO: move most of this logic to separated function in BaseCanvas
 		this.canvas.ctx.save();
 
 		this.canvas.ctx.translate(this.decorationX, this.decorationY);
 		this.canvas.ctx.scale(
-			this.decorationWidth / originalHeight,
-			this.decorationHeight / originalHeight,
+			this.decorationWidth / decorationImage.naturalWidth,
+			this.decorationHeight / decorationImage.naturalHeight,
 		);
 		this.canvas.ctx.drawImage(decorationImage, 0, 0);
+
 		this.canvas.ctx.restore();
 	}
 
