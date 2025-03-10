@@ -54,6 +54,26 @@ export const startServer = () => {
 				? 'max-age=30000'
 				: 'no-store, no-cache, must-revalidate';
 
+			if (process.env.NODE_ENV === 'dev') {
+				const candidate = await getMemberById(req.params.memberId);
+				if (!candidate) {
+					res.status(404);
+					return res.send('User not found');
+				}
+
+				const svg = await updateBanner(
+					candidate,
+					candidate.presence?.activities,
+				);
+
+				res.setHeader('Content-Type', 'image/svg+xml');
+				res.setHeader('Cache-Control', cacheHeader);
+				res.status(200);
+				res.send(svg);
+
+				return;
+			}
+
 			const cachedWidget = await redisClient.get(req.params.memberId);
 
 			if (cachedWidget) {
