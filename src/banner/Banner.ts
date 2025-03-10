@@ -378,8 +378,8 @@ class BannerActivity extends BaseBannerEntity {
 	activityTypeFillStyle = '#B9BBBE';
 
 	activityImageY = 384;
-	activityImageHeight = 45;
-	activityImageWidth = 45;
+	activityImageHeight = 42;
+	activityImageWidth = 42;
 
 	// TODO?: refactor these variables
 	activityNameFont = "normal 500 18px 'ABCGintoNormal'";
