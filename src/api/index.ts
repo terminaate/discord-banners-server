@@ -5,6 +5,9 @@ import { redisClient } from '@/redis';
 import { updateBanner } from '@/banner/updateBanner';
 import { getMemberById } from '@/bot/getMemberById';
 import { query, validationResult } from 'express-validator';
+import { ProfileEffectsService } from '@/services/ProfileEffectsService';
+import { UserDTO } from '@/dto/user.dto';
+import { AvatarDecorationsService } from '@/services/AvatarDecorationsService';
 
 class ResponseDTO {
 	constructor(
@@ -28,8 +31,11 @@ const bodyExceptionMiddleware = (
 	next();
 };
 
-export const startServer = () => {
+export const startServer = async () => {
 	const app = express();
+
+	await ProfileEffectsService.init();
+	await AvatarDecorationsService.init();
 
 	const { SERVER_PORT } = process.env;
 
@@ -39,9 +45,37 @@ export const startServer = () => {
 	app.use(bodyExceptionMiddleware);
 	app.use(morgan(process.env.NODE_ENV === 'dev' ? 'dev' : 'common'));
 
+	app.get('/profile-effects', (req, res) => {
+		res.json(ProfileEffectsService.getAll());
+	});
+
+	app.get('/decorations', (req, res) => {
+		res.json(AvatarDecorationsService.getAll());
+	});
+
+	// TODO: add endpoint for avatar effects
+
 	app.get(
-		'/widget/:memberId',
+		'/banner/:memberId',
 		query('cache').optional().isBoolean().toBoolean(),
+		query('profileEffect')
+			.optional()
+			.custom((val) => {
+				if (!ProfileEffectsService.getProfileEffectById(val)) {
+					throw new Error("Profile effect doesn't exist");
+				}
+
+				return true;
+			}),
+		query('decoration')
+			.optional()
+			.custom((val) => {
+				if (!AvatarDecorationsService.getDecorationByAsset(val)) {
+					throw new Error("Decoration doesn't exist");
+				}
+
+				return true;
+			}),
 		async (req: Request<{ memberId: string }>, res) => {
 			const validationErrors = validationResult(req);
 			if (!validationErrors.isEmpty()) {
@@ -49,28 +83,44 @@ export const startServer = () => {
 				return;
 			}
 
-			const needToCacheResponse = req.query.cache;
+			const {
+				cache: needToCacheResponse,
+				profileEffect,
+				decoration: avatarDecoration,
+			} = req.query;
+
+			const overwrites: Partial<Record<keyof UserDTO, string>> = {
+				profileEffect: ProfileEffectsService.getProfileEffectAnimatedImageById(
+					profileEffect as string,
+				),
+				avatarDecoration: AvatarDecorationsService.getDecorationUrl(
+					avatarDecoration as string,
+				),
+			};
+
 			const cacheHeader = needToCacheResponse
 				? 'max-age=30000'
 				: 'no-store, no-cache, must-revalidate';
 
-			if (process.env.NODE_ENV === 'dev') {
+			// TODO: add caching
+			if (Object.values(overwrites).filter(Boolean).length) {
 				const candidate = await getMemberById(req.params.memberId);
 				if (!candidate) {
 					res.status(404);
 					return res.send('User not found');
 				}
 
-				const svg = await updateBanner(
-					candidate,
-					candidate.presence?.activities,
-				);
+				const userDto = await UserDTO.create(candidate);
+				for (const [key, value] of Object.entries(overwrites)) {
+					userDto[key] = value;
+				}
+
+				const svg = await updateBanner(userDto, candidate.presence?.activities);
 
 				res.setHeader('Content-Type', 'image/svg+xml');
 				res.setHeader('Cache-Control', cacheHeader);
 				res.status(200);
 				res.send(svg);
-
 				return;
 			}
 

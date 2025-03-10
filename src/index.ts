@@ -4,7 +4,7 @@ import { startServer } from '@/api';
 
 export const main = async () => {
 	await startBot();
-	startServer();
+	void startServer();
 };
 
 void main();

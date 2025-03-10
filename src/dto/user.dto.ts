@@ -11,8 +11,10 @@ export class UserDTO {
 	publicFlags?: number | null;
 	accentColor?: string | null;
 	premiumSince?: number | null;
+	profileEffect?: string;
+	avatarDecoration?: string | null;
 
-	constructor(member: GuildMember) {
+	constructor(member: GuildMember, profileEffect?: string) {
 		const username = getMemberUsername(member);
 
 		this.id = member.id;
@@ -23,6 +25,8 @@ export class UserDTO {
 		this.publicFlags = member.user.flags?.bitfield;
 		this.accentColor = member.displayHexColor ?? '#fff';
 		this.premiumSince = member.premiumSinceTimestamp;
+		this.avatarDecoration = member.user.avatarDecorationURL();
+		this.profileEffect = profileEffect;
 
 		this.customStatus = member.presence?.activities.find(
 			(activity) => activity.type === ActivityType.Custom,

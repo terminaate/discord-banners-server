@@ -25,3 +25,9 @@ export interface ProfileEffectConfig {
 	reducedMotionSrc: string;
 	effects: Array<EffectConfig>;
 }
+
+export interface ProfileEffect {
+	id: string;
+	skuId: string;
+	config: ProfileEffectConfig;
+}

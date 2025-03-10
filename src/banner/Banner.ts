@@ -61,6 +61,7 @@ export class Banner {
 
 		for (const layer of layers) {
 			await layer?.render(userData);
+			console.log('Just rendered', layer);
 		}
 
 		return canvas;
@@ -171,8 +172,6 @@ class BannerBackground extends BaseBannerEntity {
 	}
 }
 
-// TODO: add profile effects support, grab them from https://fakeprofile.is-always.online/profile-effects, and copy typings from fakeProfile plugin
-
 class BannerProfileEffect extends BaseBannerEntity {
 	x = 0;
 	y = 0;
@@ -189,8 +188,13 @@ class BannerProfileEffect extends BaseBannerEntity {
 	async render({ user }: UserDataForCanvas) {
 		// TODO: sometimes animation for some reason don't work
 
-		const profileEffectURL =
-			'https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-05/paint-the-town-blue/intro.png';
+		const profileEffectURL = user.profileEffect;
+		if (!profileEffectURL) {
+			return;
+		}
+
+		// const profileEffectURL =
+		// 	'https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-05/paint-the-town-blue/intro.png';
 
 		const profileEffectImage = await loadImage(profileEffectURL);
 
@@ -273,10 +277,11 @@ class BannerAvatar extends BaseBannerEntity {
 	}
 
 	private async drawDecoration(user: UserDTO) {
-		console.log('drawing decoration');
+		const decorationURL = user.avatarDecoration;
+		if (!decorationURL) {
+			return;
+		}
 
-		const decorationURL =
-			'https://cdn.discordapp.com/avatar-decoration-presets/a_6d99f670de3fcee669660fe262e896ea';
 		const decorationImage = await loadImage(decorationURL);
 
 		// TODO: move most of this logic to separated function in BaseCanvas
@@ -390,7 +395,7 @@ class BannerPublicFlags extends BaseBannerEntity {
 
 	async render({ user }: UserDataForCanvas): Promise<void> {
 		const { publicFlags } = user;
-		if (!publicFlags) {
+		if (!publicFlags || !PublicFlagsImages[publicFlags]) {
 			return;
 		}
 
@@ -497,19 +502,33 @@ class BannerActivity extends BaseBannerEntity {
 		const defaultActivityImage = path.resolve(AssetsPath, 'icons/activity.svg');
 
 		const activityImageURL = activity.largeImageURL ?? defaultActivityImage;
-		// const activityImage = await loadImage(activityImageURL);
 
-		const response = await axios({
-			url: activityImageURL,
-			responseType: 'arraybuffer',
-			headers: {
-				'User-Agent':
-					'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
-			},
-		});
+		if (activity.largeImageURL) {
+			const response = await axios({
+				url: activityImageURL,
+				responseType: 'arraybuffer',
+				headers: {
+					'User-Agent':
+						'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
+				},
+			});
 
-		const activityImage = new Image();
-		activityImage.onload = () => {
+			const activityImage = new Image();
+			activityImage.onload = () => {
+				this.canvas.ctx.drawImage(
+					activityImage,
+					this.x,
+					this.activityImageY * this.canvas.heightScale,
+					this.activityImageWidth,
+					this.activityImageHeight,
+				);
+			};
+			activityImage.src = await sharp(response.data)
+				.resize(this.activityImageWidth, this.activityImageHeight)
+				.toBuffer();
+		} else {
+			const activityImage = await loadImage(activityImageURL);
+
 			this.canvas.ctx.drawImage(
 				activityImage,
 				this.x,
@@ -517,10 +536,7 @@ class BannerActivity extends BaseBannerEntity {
 				this.activityImageWidth,
 				this.activityImageHeight,
 			);
-		};
-		activityImage.src = await sharp(response.data)
-			.resize(this.activityImageWidth, this.activityImageHeight)
-			.toBuffer();
+		}
 	}
 
 	private drawActivityName(activity: UserActivityDTO) {
@@ -595,7 +611,6 @@ class BannerCustomStatus extends BaseBannerEntity {
 
 		if (text.length > this.maxLength) {
 			text = text.slice(0, this.maxLength) + '...';
-			console.log('its working', text);
 		}
 
 		this.canvas.fillStyle = this.fillStyle;
