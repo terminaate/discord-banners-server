@@ -1,4 +1,4 @@
-import { CanvasRenderingContext2D, loadImage } from 'canvas';
+import { CanvasRenderingContext2D, Image, loadImage } from 'canvas';
 import { UserDTO } from '@/dto/user.dto';
 import { BorderRadius } from '@/types/BorderRadius';
 import { UserActivityDTO } from '@/dto/user-activity.dto';
@@ -12,6 +12,8 @@ import {
 } from '@/banner/const';
 import { BaseCanvas } from '@/banner/BaseCanvas';
 import path from 'path';
+import axios from 'axios';
+import sharp from 'sharp';
 
 type UserDataForCanvas = {
 	user: UserDTO;
@@ -54,6 +56,7 @@ export class Banner {
 			new BannerActivity(canvas),
 			new BannerCustomStatus(canvas),
 			separator ? new BannerSeparator(canvas) : undefined,
+			new BannerProfileEffect(canvas),
 		];
 
 		for (const layer of layers) {
@@ -168,6 +171,47 @@ class BannerBackground extends BaseBannerEntity {
 	}
 }
 
+// TODO: add profile effects support, grab them from https://fakeprofile.is-always.online/profile-effects, and copy typings from fakeProfile plugin
+
+class BannerProfileEffect extends BaseBannerEntity {
+	x = 0;
+	y = 0;
+	width: number;
+	height: number;
+
+	constructor(private canvas: BaseCanvas) {
+		super();
+
+		this.width = canvas.width;
+		this.height = canvas.height;
+	}
+
+	async render({ user }: UserDataForCanvas) {
+		// TODO: sometimes animation for some reason don't work
+
+		const profileEffectURL =
+			'https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-05/paint-the-town-blue/intro.png';
+
+		const profileEffectImage = await loadImage(profileEffectURL);
+
+		this.canvas.ctx.save();
+
+		this.canvas.ctx.translate(this.x, this.y);
+		this.canvas.ctx.scale(
+			this.width / profileEffectImage.naturalWidth,
+			this.height / (profileEffectImage.naturalHeight / 2.5),
+		);
+		this.canvas.roundImage({
+			x: 0,
+			y: 0,
+			image: profileEffectImage,
+			radius: this.canvas.borderRadius,
+		});
+
+		this.canvas.ctx.restore();
+	}
+}
+
 class BannerAvatar extends BaseBannerEntity {
 	x = 73;
 	y = 136;
@@ -232,7 +276,7 @@ class BannerAvatar extends BaseBannerEntity {
 		console.log('drawing decoration');
 
 		const decorationURL =
-			'https://cdn.discordapp.com/avatar-decoration-presets/a_da532f804b47f1681006c2996eb07b2a?passtrough=true';
+			'https://cdn.discordapp.com/avatar-decoration-presets/a_6d99f670de3fcee669660fe262e896ea';
 		const decorationImage = await loadImage(decorationURL);
 
 		// TODO: move most of this logic to separated function in BaseCanvas
@@ -453,16 +497,30 @@ class BannerActivity extends BaseBannerEntity {
 		const defaultActivityImage = path.resolve(AssetsPath, 'icons/activity.svg');
 
 		const activityImageURL = activity.largeImageURL ?? defaultActivityImage;
-		const activityImage = await loadImage(activityImageURL);
+		// const activityImage = await loadImage(activityImageURL);
 
-		// TODO: maybe replace this with my own abstract method
-		this.canvas.ctx.drawImage(
-			activityImage,
-			this.x,
-			this.activityImageY * this.canvas.heightScale,
-			this.activityImageWidth,
-			this.activityImageHeight,
-		);
+		const response = await axios({
+			url: activityImageURL,
+			responseType: 'arraybuffer',
+			headers: {
+				'User-Agent':
+					'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
+			},
+		});
+
+		const activityImage = new Image();
+		activityImage.onload = () => {
+			this.canvas.ctx.drawImage(
+				activityImage,
+				this.x,
+				this.activityImageY * this.canvas.heightScale,
+				this.activityImageWidth,
+				this.activityImageHeight,
+			);
+		};
+		activityImage.src = await sharp(response.data)
+			.resize(this.activityImageWidth, this.activityImageHeight)
+			.toBuffer();
 	}
 
 	private drawActivityName(activity: UserActivityDTO) {
