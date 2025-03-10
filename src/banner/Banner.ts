@@ -180,13 +180,22 @@ class BannerAvatar extends BaseBannerEntity {
 	backgroundY = 215.5;
 	backgroundRadius = 94.5;
 
+	decorationHeight = 189;
+	decorationWidth = 189;
+	decorationX = 58;
+	decorationY = 121;
+
 	constructor(private canvas: BaseCanvas) {
 		super();
 	}
 
 	async render({ user }: UserDataForCanvas): Promise<void> {
 		this.drawBackground();
+		await this.drawAvatar(user);
+		await this.drawDecoration(user);
+	}
 
+	private async drawAvatar(user: UserDTO) {
 		const ctx = this.canvas.ctx;
 
 		// TODO: refactor
@@ -217,6 +226,26 @@ class BannerAvatar extends BaseBannerEntity {
 		ctx.drawImage(avatarImage, this.x, this.y, this.width, this.height);
 
 		ctx.restore();
+	}
+
+	private async drawDecoration(user: UserDTO) {
+		console.log('drawing decoration');
+
+		const decorationURL =
+			'https://cdn.discordapp.com/avatar-decoration-presets/a_9bc421cef4bdcfffeb2344b44ad91b44?passtrough=true';
+		const decorationImage = await loadImage(decorationURL);
+
+		const originalHeight = 288;
+
+		this.canvas.ctx.save();
+
+		this.canvas.ctx.translate(this.decorationX, this.decorationY);
+		this.canvas.ctx.scale(
+			this.decorationWidth / originalHeight,
+			this.decorationHeight / originalHeight,
+		);
+		this.canvas.ctx.drawImage(decorationImage, 0, 0);
+		this.canvas.ctx.restore();
 	}
 
 	private drawBackground() {
