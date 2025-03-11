@@ -72,7 +72,10 @@ export const startServer = async () => {
 		res.json(AvatarDecorationsService.getAll());
 	});
 
+	// TODO: change the way we store overwrites in cache keys, just store ids instead of full links, and convert them into base64 instead of plain json
+
 	// TODO: add "animated" query, and maybe "compact" query
+	// TODO: maybe add  more fields that we can overwrite, (for example banner)
 	app.get(
 		'/banner/:memberId',
 		query('cache').optional().isBoolean().toBoolean(),

@@ -196,11 +196,14 @@ class BannerProfileEffect extends BaseBannerEntity {
 
 		this.canvas.ctx.save();
 
-		this.canvas.ctx.translate(this.x, this.y);
-		this.canvas.ctx.scale(
-			this.width / profileEffectImage.naturalWidth,
-			this.height / (profileEffectImage.naturalHeight / 2.5),
+		this.canvas.ctx.translate(
+			this.x,
+			(this.canvas.height - profileEffectImage.naturalHeight) / 2,
 		);
+
+		const x = this.width / profileEffectImage.naturalWidth;
+
+		this.canvas.ctx.scale(x, x);
 		this.canvas.roundImage({
 			x: 0,
 			y: 0,
