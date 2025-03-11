@@ -1,17 +1,20 @@
 import { Activity, ActivityType, GuildMember } from 'discord.js';
-import { redisClient } from '@/redis';
 import { Banner } from '@/banner/Banner';
 import { UserDTO } from '@/dto/user.dto';
 import { UserActivityDTO } from '@/dto/user-activity.dto';
+import { redisClient } from '@/redis';
+import { getCacheKey } from '@/utils/getCacheKey';
+import { scanCacheKeys } from '@/utils/scanCacheKeys';
 
 export const updateBanner = async (
-	member: GuildMember | UserDTO,
+	member: GuildMember,
 	activities?: Activity[],
+	overwrites?: Partial<Record<keyof UserDTO, string>>,
 ) => {
 	const activity = activities?.find((o) => o.type !== ActivityType.Custom);
 
-	const userDto =
-		member instanceof UserDTO ? member : await UserDTO.create(member);
+	const userDto = await UserDTO.create(member);
+	Object.assign(userDto, overwrites);
 
 	const canvas = await Banner.create(
 		userDto,
@@ -20,8 +23,16 @@ export const updateBanner = async (
 
 	const res = canvas.toBuffer().toString();
 
-	await redisClient.set(userDto.id, res);
-	await redisClient.set(userDto.username, res);
+	const cachedKey = await getCacheKey(userDto.id, userDto.username, overwrites);
+
+	const relativeCacheKeys = await scanCacheKeys((candidate) =>
+		candidate.includes(member.id),
+	);
+	for (const trashKey of relativeCacheKeys) {
+		await redisClient.del(trashKey);
+	}
+
+	await redisClient.set(cachedKey, res);
 
 	return res;
 };

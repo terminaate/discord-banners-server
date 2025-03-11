@@ -15,7 +15,7 @@ import { UserDTO } from '@/dto/user.dto';
 import { getMemberById } from '@/bot/getMemberById';
 import { updateBanner } from '@/banner/updateBanner';
 import { redisClient } from '@/redis';
-import { hashJson } from '@/utils/hashJson';
+import { scanCacheKeys } from '@/utils/scanCacheKeys';
 
 type BannerRequest = Request<
 	{ memberId: string },
@@ -39,17 +39,11 @@ async function renderBanner(
 		return res.status(404).send('User not found');
 	}
 
-	const userDto = await UserDTO.create(candidate);
-	Object.assign(userDto, overwrites);
-
-	const svg = await updateBanner(userDto, candidate.presence?.activities);
-
-	if (Object.values(overwrites).some(Boolean)) {
-		const hashedJson = await hashJson(overwrites);
-
-		await redisClient.set(`${userDto.id}_${hashedJson}`, svg);
-		await redisClient.set(`${userDto.username}_${hashedJson}`, svg);
-	}
+	const svg = await updateBanner(
+		candidate,
+		candidate.presence?.activities,
+		overwrites,
+	);
 
 	res.setHeader('Content-Type', 'image/svg+xml');
 	res.setHeader('Cache-Control', cacheHeader);
@@ -78,6 +72,7 @@ export const startServer = async () => {
 		res.json(AvatarDecorationsService.getAll());
 	});
 
+	// TODO: add "animated" query
 	app.get(
 		'/banner/:memberId',
 		query('cache').optional().isBoolean().toBoolean(),
@@ -98,23 +93,37 @@ export const startServer = async () => {
 
 			const cacheHeader = getCacheHeader(needToCacheResponse);
 			const overwrites = getOverwrites(profileEffect, decoration);
+			const stringifyOverwrites = JSON.stringify(overwrites);
+			const isOverwrites = Object.values(overwrites).some(Boolean);
 
 			// if (process.env.NODE_ENV === 'dev') {
 			// 	return renderBanner(res, memberId, overwrites, cacheHeader);
 			// }
 
-			if (Object.values(overwrites).some(Boolean)) {
-				return renderBanner(res, memberId, overwrites, cacheHeader);
-			}
+			const relatedCacheKeys = await scanCacheKeys((candidate) => {
+				// @note: removes date
+				candidate = candidate.slice(candidate.indexOf('-') + 1);
 
-			const cachedWidget = await redisClient.get(memberId);
+				if (isOverwrites) {
+					return (
+						candidate.startsWith(memberId) &&
+						candidate.endsWith(stringifyOverwrites)
+					);
+				}
+
+				const arr = candidate.split('@');
+
+				return arr.length === 2 && arr.includes(memberId);
+			});
+
+			const cachedWidget = await redisClient.get(relatedCacheKeys[0]);
 			if (cachedWidget) {
 				res.setHeader('Content-Type', 'image/svg+xml');
 				res.setHeader('Cache-Control', cacheHeader);
 				return res.status(200).send(cachedWidget);
 			}
 
-			return renderBanner(res, memberId, {}, cacheHeader);
+			return renderBanner(res, memberId, overwrites, cacheHeader);
 		},
 	);
 
