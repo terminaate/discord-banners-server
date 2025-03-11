@@ -19,7 +19,7 @@ const extractOverwritesFromCacheKey = (
 		return;
 	}
 
-	const [userId, username, overwrites] = cacheKey.split('@');
+	const overwrites = cacheKey.split('@')[2];
 	if (!overwrites) {
 		return;
 	}
