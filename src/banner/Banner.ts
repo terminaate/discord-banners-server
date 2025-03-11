@@ -1,4 +1,4 @@
-import { CanvasRenderingContext2D, Image, loadImage } from 'canvas';
+import { CanvasRenderingContext2D, loadImage } from 'canvas';
 import { UserDTO } from '@/dto/user.dto';
 import { BorderRadius } from '@/types/BorderRadius';
 import { UserActivityDTO } from '@/dto/user-activity.dto';
@@ -12,8 +12,9 @@ import {
 } from '@/banner/const';
 import { BaseCanvas } from '@/banner/BaseCanvas';
 import path from 'path';
-import axios from 'axios';
 import sharp from 'sharp';
+import { loadImageBuffer } from '@/utils/loadImageBuffer';
+import { createImageFromBuffer } from '@/utils/createImageFromBuffer';
 
 type UserDataForCanvas = {
 	user: UserDTO;
@@ -127,10 +128,8 @@ class BannerBackground extends BaseBannerEntity {
 
 			this.canvas.roundImage({
 				image: backgroundImage,
-				x: 0,
-				y: 0,
-				width: this.width,
-				height: this.height,
+				x: this.x,
+				y: this.y,
 				relativeToHeight: false,
 				radius: {
 					tl: borderRadius.tl,
@@ -155,6 +154,7 @@ class BannerBackground extends BaseBannerEntity {
 			});
 		}
 
+		// @note: draw info background
 		this.canvas.fillStyle = BannerColors.INFO_COLOR;
 		this.canvas.roundRect({
 			x: 0,
@@ -191,9 +191,6 @@ class BannerProfileEffect extends BaseBannerEntity {
 		if (!profileEffectURL) {
 			return;
 		}
-
-		// const profileEffectURL =
-		// 	'https://cdn.discordapp.com/assets/profile_effects/effects/2024-11-05/paint-the-town-blue/intro.png';
 
 		const profileEffectImage = await loadImage(profileEffectURL);
 
@@ -503,30 +500,13 @@ class BannerActivity extends BaseBannerEntity {
 		const activityImageURL = activity.largeImageURL ?? defaultActivityImage;
 
 		if (activity.largeImageURL) {
-			const response = await axios({
-				url: activityImageURL,
-				responseType: 'arraybuffer',
-				headers: {
-					'User-Agent':
-						'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
-				},
-			});
+			const response = await loadImageBuffer(activityImageURL);
 
-			const activityImage = new Image();
-			activityImage.onload = () => {
-				this.canvas.ctx.drawImage(
-					activityImage,
-					this.x,
-					this.activityImageY * this.canvas.heightScale,
-					this.activityImageWidth,
-					this.activityImageHeight,
-				);
-			};
-			activityImage.src = await sharp(response.data)
-				.resize(this.activityImageWidth, this.activityImageHeight)
-				.toBuffer();
-		} else {
-			const activityImage = await loadImage(activityImageURL);
+			const activityImage = await createImageFromBuffer(
+				await sharp(response)
+					.resize(this.activityImageWidth, this.activityImageHeight)
+					.toBuffer(),
+			);
 
 			this.canvas.ctx.drawImage(
 				activityImage,
@@ -535,7 +515,19 @@ class BannerActivity extends BaseBannerEntity {
 				this.activityImageWidth,
 				this.activityImageHeight,
 			);
+
+			return;
 		}
+
+		const activityImage = await loadImage(activityImageURL);
+
+		this.canvas.ctx.drawImage(
+			activityImage,
+			this.x,
+			this.activityImageY * this.canvas.heightScale,
+			this.activityImageWidth,
+			this.activityImageHeight,
+		);
 	}
 
 	private drawActivityName(activity: UserActivityDTO) {

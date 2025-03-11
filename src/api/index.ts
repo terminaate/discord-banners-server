@@ -72,7 +72,7 @@ export const startServer = async () => {
 		res.json(AvatarDecorationsService.getAll());
 	});
 
-	// TODO: add "animated" query
+	// TODO: add "animated" query, and maybe "compact" query
 	app.get(
 		'/banner/:memberId',
 		query('cache').optional().isBoolean().toBoolean(),
@@ -96,9 +96,9 @@ export const startServer = async () => {
 			const stringifyOverwrites = JSON.stringify(overwrites);
 			const isOverwrites = Object.values(overwrites).some(Boolean);
 
-			// if (process.env.NODE_ENV === 'dev') {
-			// 	return renderBanner(res, memberId, overwrites, cacheHeader);
-			// }
+			if (process.env.NODE_ENV === 'dev') {
+				return renderBanner(res, memberId, overwrites, cacheHeader);
+			}
 
 			const relatedCacheKeys = await scanCacheKeys((candidate) => {
 				// @note: removes date
