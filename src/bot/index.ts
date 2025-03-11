@@ -49,7 +49,7 @@ export const startBot = async () => {
 		});
 		const cacheKey = relatedCacheKeys[0];
 
-		updateBanner(
+		void updateBanner(
 			member,
 			member.presence?.activities,
 			extractOverwritesFromCacheKey(cacheKey),
@@ -66,7 +66,7 @@ export const startBot = async () => {
 		});
 		const cacheKey = relatedCacheKeys[0];
 
-		updateBanner(
+		void updateBanner(
 			presence.member,
 			presence.activities,
 			extractOverwritesFromCacheKey(cacheKey),
