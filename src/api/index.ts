@@ -8,11 +8,14 @@ import { bodyExceptionMiddleware } from '@/api/middlewares';
 import {
 	getCacheHeader,
 	getOverwrites,
-	handleBannerWithOverwrites,
-	handleCachedOrDefaultBanner,
 	validateDecoration,
 	validateProfileEffect,
 } from '@/api/utils';
+import { UserDTO } from '@/dto/user.dto';
+import { getMemberById } from '@/bot/getMemberById';
+import { updateBanner } from '@/banner/updateBanner';
+import { redisClient } from '@/redis';
+import { hashJson } from '@/utils/hashJson';
 
 type BannerRequest = Request<
 	{ memberId: string },
@@ -24,6 +27,34 @@ type BannerRequest = Request<
 		decoration?: string;
 	}
 >;
+
+async function renderBanner(
+	res: Response,
+	memberId: string,
+	overwrites: Partial<Record<keyof UserDTO, string>>,
+	cacheHeader: string,
+) {
+	const candidate = await getMemberById(memberId);
+	if (!candidate) {
+		return res.status(404).send('User not found');
+	}
+
+	const userDto = await UserDTO.create(candidate);
+	Object.assign(userDto, overwrites);
+
+	const svg = await updateBanner(userDto, candidate.presence?.activities);
+
+	if (Object.values(overwrites).some(Boolean)) {
+		const hashedJson = await hashJson(overwrites);
+
+		await redisClient.set(`${userDto.id}_${hashedJson}`, svg);
+		await redisClient.set(`${userDto.username}_${hashedJson}`, svg);
+	}
+
+	res.setHeader('Content-Type', 'image/svg+xml');
+	res.setHeader('Cache-Control', cacheHeader);
+	return res.status(200).send(svg);
+}
 
 export const startServer = async () => {
 	const app = express();
@@ -68,16 +99,31 @@ export const startServer = async () => {
 			const cacheHeader = getCacheHeader(needToCacheResponse);
 			const overwrites = getOverwrites(profileEffect, decoration);
 
+			// if (process.env.NODE_ENV === 'dev') {
+			// 	return renderBanner(res, memberId, overwrites, cacheHeader);
+			// }
+
 			if (Object.values(overwrites).some(Boolean)) {
-				return handleBannerWithOverwrites(
-					memberId,
-					overwrites,
-					cacheHeader,
-					res,
-				);
+				const id = `${memberId}_${await hashJson(overwrites)}`;
+				const candidate = await redisClient.get(id);
+
+				if (candidate) {
+					res.setHeader('Content-Type', 'image/svg+xml');
+					res.setHeader('Cache-Control', cacheHeader);
+					return res.status(200).send(candidate);
+				}
+
+				return renderBanner(res, memberId, overwrites, cacheHeader);
 			}
 
-			return handleCachedOrDefaultBanner(memberId, cacheHeader, res);
+			const cachedWidget = await redisClient.get(memberId);
+			if (cachedWidget) {
+				res.setHeader('Content-Type', 'image/svg+xml');
+				res.setHeader('Cache-Control', cacheHeader);
+				return res.status(200).send(cachedWidget);
+			}
+
+			return renderBanner(res, memberId, {}, cacheHeader);
 		},
 	);
 
