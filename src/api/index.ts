@@ -1,35 +1,29 @@
 import cors from 'cors';
-import express, { NextFunction, Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 import morgan from 'morgan';
-import { redisClient } from '@/redis';
-import { updateBanner } from '@/banner/updateBanner';
-import { getMemberById } from '@/bot/getMemberById';
 import { query, validationResult } from 'express-validator';
 import { ProfileEffectsService } from '@/services/ProfileEffectsService';
-import { UserDTO } from '@/dto/user.dto';
 import { AvatarDecorationsService } from '@/services/AvatarDecorationsService';
+import { bodyExceptionMiddleware } from '@/api/middlewares';
+import {
+	getCacheHeader,
+	getOverwrites,
+	handleBannerWithOverwrites,
+	handleCachedOrDefaultBanner,
+	validateDecoration,
+	validateProfileEffect,
+} from '@/api/utils';
 
-class ResponseDTO {
-	constructor(
-		public message: string | string[],
-		public statusCode: number,
-	) {}
-}
-
-const bodyExceptionMiddleware = (
-	err: SyntaxError | unknown,
-	req: Request,
-	res: Response,
-	next: NextFunction,
-) => {
-	if (process.env.NODE_ENV === 'dev') {
-		console.log(err);
+type BannerRequest = Request<
+	{ memberId: string },
+	any,
+	any,
+	{
+		cache?: boolean;
+		profileEffect?: string;
+		decoration?: string;
 	}
-	if (err instanceof SyntaxError && 'body' in err) {
-		return res.status(400).json(new ResponseDTO(err.message, 400));
-	}
-	next();
-};
+>;
 
 export const startServer = async () => {
 	const app = express();
@@ -53,100 +47,37 @@ export const startServer = async () => {
 		res.json(AvatarDecorationsService.getAll());
 	});
 
-	// TODO: add endpoint for avatar effects
-
 	app.get(
 		'/banner/:memberId',
 		query('cache').optional().isBoolean().toBoolean(),
-		query('profileEffect')
-			.optional()
-			.custom((val) => {
-				if (!ProfileEffectsService.getProfileEffectById(val)) {
-					throw new Error("Profile effect doesn't exist");
-				}
-
-				return true;
-			}),
-		query('decoration')
-			.optional()
-			.custom((val) => {
-				if (!AvatarDecorationsService.getDecorationByAsset(val)) {
-					throw new Error("Decoration doesn't exist");
-				}
-
-				return true;
-			}),
-		async (req: Request<{ memberId: string }>, res) => {
+		query('profileEffect').optional().custom(validateProfileEffect),
+		query('decoration').optional().custom(validateDecoration),
+		async (req: BannerRequest, res: Response) => {
 			const validationErrors = validationResult(req);
 			if (!validationErrors.isEmpty()) {
-				res.json({ errors: validationErrors.array() });
-				return;
+				return res.json({ errors: validationErrors.array() });
 			}
 
 			const {
 				cache: needToCacheResponse,
 				profileEffect,
-				decoration: avatarDecoration,
+				decoration,
 			} = req.query;
+			const { memberId } = req.params;
 
-			const overwrites: Partial<Record<keyof UserDTO, string>> = {
-				profileEffect: ProfileEffectsService.getProfileEffectAnimatedImageById(
-					profileEffect as string,
-				),
-				avatarDecoration: AvatarDecorationsService.getDecorationUrl(
-					avatarDecoration as string,
-				),
-			};
+			const cacheHeader = getCacheHeader(needToCacheResponse);
+			const overwrites = getOverwrites(profileEffect, decoration);
 
-			const cacheHeader = needToCacheResponse
-				? 'max-age=30000'
-				: 'no-store, no-cache, must-revalidate';
-
-			// TODO: add caching
-			if (Object.values(overwrites).filter(Boolean).length) {
-				const candidate = await getMemberById(req.params.memberId);
-				if (!candidate) {
-					res.status(404);
-					return res.send('User not found');
-				}
-
-				const userDto = await UserDTO.create(candidate);
-				for (const [key, value] of Object.entries(overwrites)) {
-					userDto[key] = value;
-				}
-
-				const svg = await updateBanner(userDto, candidate.presence?.activities);
-
-				res.setHeader('Content-Type', 'image/svg+xml');
-				res.setHeader('Cache-Control', cacheHeader);
-				res.status(200);
-				res.send(svg);
-				return;
+			if (Object.values(overwrites).some(Boolean)) {
+				return handleBannerWithOverwrites(
+					memberId,
+					overwrites,
+					cacheHeader,
+					res,
+				);
 			}
 
-			const cachedWidget = await redisClient.get(req.params.memberId);
-
-			if (cachedWidget) {
-				res.setHeader('Content-Type', 'image/svg+xml');
-				res.setHeader('Cache-Control', cacheHeader);
-				res.status(200);
-				res.send(cachedWidget);
-
-				return;
-			}
-
-			const candidate = await getMemberById(req.params.memberId);
-			if (!candidate) {
-				res.status(404);
-				return res.send('User not found');
-			}
-
-			const svg = await updateBanner(candidate, candidate.presence?.activities);
-
-			res.setHeader('Content-Type', 'image/svg+xml');
-			res.setHeader('Cache-Control', cacheHeader);
-			res.status(200);
-			res.send(svg);
+			return handleCachedOrDefaultBanner(memberId, cacheHeader, res);
 		},
 	);
 

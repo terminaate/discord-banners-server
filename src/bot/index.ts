@@ -13,16 +13,6 @@ export const discordClient = new Client({
 export const startBot = async () => {
 	discordClient.on('ready', () => {
 		console.log(`Logged in as ${discordClient.user?.tag}!`);
-
-		// todo: maybe redis would help with that
-		// const guild = discordClient.guilds.cache.get(process.env.GUILD_ID);
-		// if (!guild) {
-		// 	return;
-		// }
-		//
-		// for (const [, member] of [...guild.members.valueOf()]) {
-		// 	createBanner(member, member.presence?.activities);
-		// }
 	});
 
 	discordClient.on('userUpdate', (_, user) => {
