@@ -104,15 +104,6 @@ export const startServer = async () => {
 			// }
 
 			if (Object.values(overwrites).some(Boolean)) {
-				const id = `${memberId}_${await hashJson(overwrites)}`;
-				const candidate = await redisClient.get(id);
-
-				if (candidate) {
-					res.setHeader('Content-Type', 'image/svg+xml');
-					res.setHeader('Cache-Control', cacheHeader);
-					return res.status(200).send(candidate);
-				}
-
 				return renderBanner(res, memberId, overwrites, cacheHeader);
 			}
 
