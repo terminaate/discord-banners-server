@@ -118,8 +118,7 @@ class BannerBackground extends BaseBannerEntity {
 	}
 
 	async render({ user }: UserDataForCanvas) {
-		const userBannerURL =
-			'https://cdn.discordapp.com/banners/1001086404203389018/a_b5f2d8146034908cc61c0006d604dc53.gif';
+		const userBannerURL = user.banner;
 		const accentColor = user.accentColor;
 		const borderRadius = this.canvas.borderRadius;
 
