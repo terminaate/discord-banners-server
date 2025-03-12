@@ -24,10 +24,17 @@ export class ProfileEffectsService {
 		return this.profileEffects[id];
 	}
 
-	public static getProfileEffectUrlById(id: string): string | undefined {
+	public static getProfileEffectUrlById(
+		id: string,
+		animated = true,
+	): string | undefined {
 		const profileEffect = this.profileEffects[id];
 		if (!profileEffect) {
 			return;
+		}
+
+		if (!animated) {
+			return profileEffect.config.reducedMotionSrc;
 		}
 
 		return profileEffect.config.effects[0].src;

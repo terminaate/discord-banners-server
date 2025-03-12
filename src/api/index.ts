@@ -11,7 +11,7 @@ import {
 	validateProfileEffect,
 } from '@/api/utils';
 import { UserDTO } from '@/dto/user.dto';
-import { getMemberById } from '@/bot/getMemberById';
+import { getMemberByIdOrUsername } from '@/utils/getMemberByIdOrUsername';
 import { updateBanner } from '@/banner/updateBanner';
 import { redisClient } from '@/redis';
 import { scanCacheKeys } from '@/utils/scanCacheKeys';
@@ -42,7 +42,7 @@ async function renderBanner(
 	res: Response,
 	{ memberId, cacheHeader, overwrites, bannerParams }: RenderBannerOpts,
 ) {
-	const candidate = await getMemberById(memberId);
+	const candidate = await getMemberByIdOrUsername(memberId);
 	if (!candidate) {
 		return res.status(404).send('User not found');
 	}
@@ -83,8 +83,6 @@ export const startServer = async () => {
 		res.json(AvatarDecorationsService.getAll());
 	});
 
-	// TODO: change the way we store overwrites in cache keys, just store ids instead of full links, and convert them into base64 instead of plain json
-
 	// TODO: maybe add  more fields that we can overwrite, (for example banner)
 	app.get(
 		'/banner/:memberId',
@@ -98,8 +96,6 @@ export const startServer = async () => {
 			if (!validationErrors.isEmpty()) {
 				return res.json({ errors: validationErrors.array() });
 			}
-
-			// TODO: if user-agent includes firefox then animated = false
 
 			const {
 				cache: needToCacheResponse,
@@ -117,14 +113,18 @@ export const startServer = async () => {
 				animated,
 			};
 			const stringifyBannerParams = JSON.stringify(bannerParams);
-			const isBannerParams = Object.values(bannerParams).some(Boolean);
+			const isBannerParams = Object.values(bannerParams).some(
+				(p) => p !== undefined,
+			);
 
 			const overwrites: Partial<Record<keyof UserDTO, string>> = {
 				profileEffect,
 				avatarDecoration: decoration,
 			};
 			const stringifyOverwrites = JSON.stringify(overwrites);
-			const isOverwrites = Object.values(overwrites).some(Boolean);
+			const isOverwrites = Object.values(overwrites).some(
+				(p) => p !== undefined,
+			);
 
 			// if (process.env.NODE_ENV === 'dev') {
 			// 	return renderBanner(res, {
@@ -136,16 +136,18 @@ export const startServer = async () => {
 			// }
 
 			const relatedCacheKeys = await scanCacheKeys((candidate) => {
-				const { bannerParams, overwrites, username, userId } =
-					getDataFromCacheKey(candidate);
+				const {
+					bannerParams: candidateBannerParams,
+					overwrites: candidateOverwrites,
+					username,
+					userId,
+				} = getDataFromCacheKey(candidate);
 
 				const isSameUser = userId === memberId || username === memberId;
 				const isSameOverwrites =
-					JSON.stringify(overwrites) === stringifyOverwrites;
+					JSON.stringify(candidateOverwrites) === stringifyOverwrites;
 				const isSameBannerParams =
-					JSON.stringify(bannerParams) === stringifyBannerParams;
-
-				console.log(isSameUser, isSameOverwrites, isSameBannerParams);
+					JSON.stringify(candidateBannerParams) === stringifyBannerParams;
 
 				if (isOverwrites && isBannerParams) {
 					return isSameUser && isSameOverwrites && isSameBannerParams;
@@ -157,8 +159,6 @@ export const startServer = async () => {
 					return isSameUser;
 				}
 			});
-
-			console.log(relatedCacheKeys);
 
 			const cachedWidget = await redisClient.get(relatedCacheKeys[0]);
 			if (cachedWidget) {

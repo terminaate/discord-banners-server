@@ -1,7 +1,7 @@
 import { GuildMember, Snowflake } from 'discord.js';
-import { discordClient } from '@/bot/index';
+import { discordClient } from '@/bot';
 
-export const getMemberById = async (
+export const getMemberByIdOrUsername = async (
 	userId: Snowflake | string,
 ): Promise<GuildMember | undefined> => {
 	const guild = discordClient.guilds.cache.get(process.env.GUILD_ID);

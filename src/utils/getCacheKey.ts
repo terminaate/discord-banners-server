@@ -13,11 +13,11 @@ export const getCacheKey = async (
 
 	const data: CacheKeyData = {};
 
-	if (Object.values(overwrites ?? {}).some(Boolean)) {
+	if (Object.values(overwrites ?? {}).some((p) => p !== undefined)) {
 		data.overwrites = overwrites;
 	}
 
-	if (Object.values(bannerParams ?? {}).some(Boolean)) {
+	if (Object.values(bannerParams ?? {}).some((p) => p !== undefined)) {
 		data.bannerParams = bannerParams;
 	}
 

@@ -38,8 +38,6 @@ export class Banner {
 	private readonly activity?: UserActivityDTO;
 
 	constructor(userData: UserDataForCanvas, bannerParams?: BannerParams) {
-		console.log('rendering with bannerParams', bannerParams);
-
 		this.user = userData.user;
 		this.activity = userData.activity;
 
@@ -55,8 +53,7 @@ export class Banner {
 
 		const { canvas, separator } = new Banner(userData, bannerParams);
 
-		// TODO: maybe optimize this
-		const layers = [
+		const layers: (BaseBannerEntity | undefined)[] = [
 			new BannerBackground(canvas),
 			new BannerAvatar(canvas),
 			new BannerStatus(canvas),
@@ -70,7 +67,7 @@ export class Banner {
 		];
 
 		for (const layer of layers) {
-			await layer?.render(userData);
+			await layer?.render(userData, bannerParams);
 		}
 
 		return canvas;
@@ -112,7 +109,10 @@ abstract class BaseBannerEntity {
 	abstract height?: number;
 	abstract width?: number;
 
-	abstract render(userData: UserDataForCanvas): Promise<void> | void;
+	abstract render(
+		userData: UserDataForCanvas,
+		bannerParams?: BannerParams,
+	): Promise<void> | void;
 }
 
 class BannerBackground extends BaseBannerEntity {
@@ -163,7 +163,7 @@ class BannerBackground extends BaseBannerEntity {
 			});
 		}
 
-		// @note: draw info background
+		// @note: draw an info background
 		this.canvas.fillStyle = BannerColors.INFO_COLOR;
 		this.canvas.roundRect({
 			x: 0,
@@ -193,13 +193,14 @@ class BannerProfileEffect extends BaseBannerEntity {
 		this.height = canvas.height;
 	}
 
-	async render({ user }: UserDataForCanvas) {
+	async render({ user }: UserDataForCanvas, bannerParams?: BannerParams) {
 		if (!user.profileEffect) {
 			return;
 		}
 
 		const profileEffectURL = ProfileEffectsService.getProfileEffectUrlById(
 			user.profileEffect,
+			bannerParams?.animated,
 		);
 		if (!profileEffectURL) {
 			return;
@@ -249,10 +250,13 @@ class BannerAvatar extends BaseBannerEntity {
 		super();
 	}
 
-	async render({ user }: UserDataForCanvas): Promise<void> {
+	async render(
+		{ user }: UserDataForCanvas,
+		bannerParams?: BannerParams,
+	): Promise<void> {
 		this.drawBackground();
 		await this.drawAvatar(user);
-		await this.drawDecoration(user);
+		await this.drawDecoration(user, bannerParams);
 	}
 
 	private async drawAvatar(user: UserDTO) {
@@ -288,13 +292,14 @@ class BannerAvatar extends BaseBannerEntity {
 		ctx.restore();
 	}
 
-	private async drawDecoration(user: UserDTO) {
+	private async drawDecoration(user: UserDTO, bannerParams?: BannerParams) {
 		if (!user.avatarDecoration) {
 			return;
 		}
 
 		const decorationURL = AvatarDecorationsService.getDecorationUrl(
 			user.avatarDecoration,
+			bannerParams?.animated,
 		);
 		if (!decorationURL) {
 			return;

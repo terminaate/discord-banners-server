@@ -24,12 +24,15 @@ export class AvatarDecorationsService {
 		return this.decorations.find((o) => o.asset === asset);
 	}
 
-	public static getDecorationUrl(asset: string): string | undefined {
+	public static getDecorationUrl(
+		asset: string,
+		animated = true,
+	): string | undefined {
 		const decoration = this.decorations.find((o) => o.asset === asset);
 		if (!decoration) {
 			return;
 		}
 
-		return `https://cdn.discordapp.com/avatar-decoration-presets/${decoration.asset}`;
+		return `https://cdn.discordapp.com/avatar-decoration-presets/${decoration.asset}?passthrough=${animated}`;
 	}
 }
