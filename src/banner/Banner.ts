@@ -15,6 +15,9 @@ import path from 'path';
 import sharp from 'sharp';
 import { loadImageBuffer } from '@/utils/loadImageBuffer';
 import { createImageFromBuffer } from '@/utils/createImageFromBuffer';
+import { BannerParams } from '@/types/BannerParams';
+import { AvatarDecorationsService } from '@/services/AvatarDecorationsService';
+import { ProfileEffectsService } from '@/services/ProfileEffectsService';
 
 type UserDataForCanvas = {
 	user: UserDTO;
@@ -34,17 +37,23 @@ export class Banner {
 	private readonly user: UserDTO;
 	private readonly activity?: UserActivityDTO;
 
-	constructor(userData: UserDataForCanvas) {
+	constructor(userData: UserDataForCanvas, bannerParams?: BannerParams) {
+		console.log('rendering with bannerParams', bannerParams);
+
 		this.user = userData.user;
 		this.activity = userData.activity;
 
 		this.initCanvas();
 	}
 
-	static async create(user: UserDTO, activity?: UserActivityDTO) {
+	static async create(
+		user: UserDTO,
+		activity?: UserActivityDTO,
+		bannerParams?: BannerParams,
+	) {
 		const userData: UserDataForCanvas = { user, activity };
 
-		const { canvas, separator } = new Banner(userData);
+		const { canvas, separator } = new Banner(userData, bannerParams);
 
 		// TODO: maybe optimize this
 		const layers = [
@@ -185,9 +194,13 @@ class BannerProfileEffect extends BaseBannerEntity {
 	}
 
 	async render({ user }: UserDataForCanvas) {
-		// TODO: sometimes animation for some reason don't work
+		if (!user.profileEffect) {
+			return;
+		}
 
-		const profileEffectURL = user.profileEffect;
+		const profileEffectURL = ProfileEffectsService.getProfileEffectUrlById(
+			user.profileEffect,
+		);
 		if (!profileEffectURL) {
 			return;
 		}
@@ -276,7 +289,13 @@ class BannerAvatar extends BaseBannerEntity {
 	}
 
 	private async drawDecoration(user: UserDTO) {
-		const decorationURL = user.avatarDecoration;
+		if (!user.avatarDecoration) {
+			return;
+		}
+
+		const decorationURL = AvatarDecorationsService.getDecorationUrl(
+			user.avatarDecoration,
+		);
 		if (!decorationURL) {
 			return;
 		}
@@ -393,6 +412,7 @@ class BannerPublicFlags extends BaseBannerEntity {
 	}
 
 	async render({ user }: UserDataForCanvas): Promise<void> {
+		// TODO: https://stackoverflow.com/questions/69622717/discord-api-get-users-badges-using-public-flags
 		const { publicFlags } = user;
 		if (!publicFlags || !PublicFlagsImages[publicFlags]) {
 			return;

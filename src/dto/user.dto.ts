@@ -25,7 +25,7 @@ export class UserDTO {
 		this.publicFlags = member.user.flags?.bitfield;
 		this.accentColor = member.displayHexColor ?? '#fff';
 		this.premiumSince = member.premiumSinceTimestamp;
-		this.avatarDecoration = member.user.avatarDecorationURL();
+		this.avatarDecoration = member.user.avatarDecorationData?.asset;
 		this.profileEffect = profileEffect;
 
 		this.customStatus = member.presence?.activities.find(

@@ -1,16 +1,25 @@
 import { UserDTO } from '@/dto/user.dto';
+import { BannerParams } from '@/types/BannerParams';
+import { CacheKeyData } from '@/types/CacheKeyData';
 
-// @note: format - {date}-{memberId}:{username}:{overwrites?}
+// @note: format - {memberId}@{username}@{{overwrites?}{bannerParams?}}
 export const getCacheKey = async (
 	userId: string,
 	username: string,
 	overwrites?: Partial<Record<keyof UserDTO, string>>,
+	bannerParams?: BannerParams,
 ) => {
-	let cacheKey = `${userId}@${username}`;
+	const cacheKey = `${userId}@${username}`;
+
+	const data: CacheKeyData = {};
 
 	if (Object.values(overwrites ?? {}).some(Boolean)) {
-		cacheKey += `@${JSON.stringify(overwrites)}`;
+		data.overwrites = overwrites;
 	}
 
-	return `${Date.now()}-${cacheKey}`;
+	if (Object.values(bannerParams ?? {}).some(Boolean)) {
+		data.bannerParams = bannerParams;
+	}
+
+	return `${cacheKey}@${btoa(JSON.stringify(data))}`;
 };

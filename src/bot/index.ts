@@ -1,7 +1,7 @@
 import { Client, GatewayIntentBits } from 'discord.js';
 import { updateBanner } from '@/banner/updateBanner';
 import { scanCacheKeys } from '@/utils/scanCacheKeys';
-import { UserDTO } from '@/dto/user.dto';
+import { getDataFromCacheKey } from '@/utils/getDataFromCacheKey';
 
 export const discordClient = new Client({
 	intents: [
@@ -11,25 +11,6 @@ export const discordClient = new Client({
 		GatewayIntentBits.GuildMessages,
 	],
 });
-
-const extractOverwritesFromCacheKey = (
-	cacheKey: string,
-): Partial<Record<keyof UserDTO, string>> | undefined => {
-	if (!cacheKey) {
-		return;
-	}
-
-	const overwrites = cacheKey.split('@')[2];
-	if (!overwrites) {
-		return;
-	}
-
-	try {
-		return JSON.parse(overwrites);
-	} catch (e) {
-		return;
-	}
-};
 
 export const startBot = async () => {
 	discordClient.on('ready', () => {
@@ -49,10 +30,13 @@ export const startBot = async () => {
 		});
 		const cacheKey = relatedCacheKeys[0];
 
+		const { overwrites, bannerParams } = getDataFromCacheKey(cacheKey);
+
 		void updateBanner(
 			member,
 			member.presence?.activities,
-			extractOverwritesFromCacheKey(cacheKey),
+			overwrites,
+			bannerParams,
 		);
 	});
 
@@ -66,10 +50,13 @@ export const startBot = async () => {
 		});
 		const cacheKey = relatedCacheKeys[0];
 
+		const { overwrites, bannerParams } = getDataFromCacheKey(cacheKey);
+
 		void updateBanner(
 			presence.member,
 			presence.activities,
-			extractOverwritesFromCacheKey(cacheKey),
+			overwrites,
+			bannerParams,
 		);
 	});
 

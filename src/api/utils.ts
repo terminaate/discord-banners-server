@@ -1,6 +1,5 @@
 import { ProfileEffectsService } from '@/services/ProfileEffectsService';
 import { AvatarDecorationsService } from '@/services/AvatarDecorationsService';
-import { UserDTO } from '@/dto/user.dto';
 
 export function validateProfileEffect(val: string): boolean {
 	if (!ProfileEffectsService.getProfileEffectById(val)) {
@@ -22,16 +21,16 @@ export function getCacheHeader(needToCacheResponse?: boolean): string {
 		: 'no-store, no-cache, must-revalidate';
 }
 
-export function getOverwrites(
-	profileEffect?: string,
-	decoration?: string,
-): Partial<Record<keyof UserDTO, string>> {
-	return {
-		profileEffect: profileEffect
-			? ProfileEffectsService.getProfileEffectAnimatedImageById(profileEffect)
-			: undefined,
-		avatarDecoration: decoration
-			? AvatarDecorationsService.getDecorationUrl(decoration)
-			: undefined,
-	};
-}
+// export function getOverwrites(
+// 	profileEffect?: string,
+// 	decoration?: string,
+// ): Partial<Record<keyof UserDTO, string>> {
+// 	return {
+// 		profileEffect: profileEffect
+// 			? ProfileEffectsService.getProfileEffectAnimatedImageById(profileEffect)
+// 			: undefined,
+// 		avatarDecoration: decoration
+// 			? AvatarDecorationsService.getDecorationUrl(decoration)
+// 			: undefined,
+// 	};
+// }

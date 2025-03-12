@@ -24,9 +24,7 @@ export class ProfileEffectsService {
 		return this.profileEffects[id];
 	}
 
-	public static getProfileEffectAnimatedImageById(
-		id: string,
-	): string | undefined {
+	public static getProfileEffectUrlById(id: string): string | undefined {
 		const profileEffect = this.profileEffects[id];
 		if (!profileEffect) {
 			return;
