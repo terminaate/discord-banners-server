@@ -24,22 +24,33 @@ type UserDataForCanvas = {
 	activity?: UserActivityDTO;
 };
 
+const DEFAULT_WIDTH = 961;
+const COMPACT_WIDTH = 600;
+
+const DEFAULT_HEIGHT = 466;
+
 export class Banner {
-	public width = 961;
-	public height = 466;
+	public width = DEFAULT_WIDTH;
+	public height = DEFAULT_HEIGHT;
 	public borderRadius: BorderRadius = 14;
 	public canvas: BaseCanvas;
 	public ctx: CanvasRenderingContext2D;
 	public heightScale = 1;
 	public separator = true;
-	private readonly DEFAULT_HEIGHT = 466;
 
 	private readonly user: UserDTO;
 	private readonly activity?: UserActivityDTO;
 
-	constructor(userData: UserDataForCanvas, bannerParams?: BannerParams) {
+	constructor(
+		userData: UserDataForCanvas,
+		private bannerParams?: BannerParams,
+	) {
 		this.user = userData.user;
 		this.activity = userData.activity;
+
+		if (bannerParams?.compact) {
+			this.width = COMPACT_WIDTH;
+		}
 
 		this.initCanvas();
 	}
@@ -77,14 +88,14 @@ export class Banner {
 		const heightCandidate = BannerDynamicHeights.find((o) =>
 			o.condition(this.user, this.activity),
 		);
-		let height = this.DEFAULT_HEIGHT;
+		let height = DEFAULT_HEIGHT;
 
 		if (heightCandidate) {
 			height = heightCandidate.height;
 			this.separator = Boolean(heightCandidate.separator);
 		}
 
-		this.heightScale = height / this.DEFAULT_HEIGHT;
+		this.heightScale = height / DEFAULT_HEIGHT;
 		this.height = height;
 	}
 
@@ -212,7 +223,9 @@ class BannerProfileEffect extends BaseBannerEntity {
 
 		this.canvas.ctx.translate(
 			this.x,
-			(this.canvas.height - profileEffectImage.naturalHeight) / 2,
+			bannerParams?.compact
+				? 0
+				: (this.canvas.height - profileEffectImage.naturalHeight) / 2,
 		);
 
 		const x = this.width / profileEffectImage.naturalWidth;
