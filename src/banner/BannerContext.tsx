@@ -16,10 +16,6 @@ type BannerContext = BannerProps & {
 
 export const bannerContext = createContext<BannerContext>({} as BannerContext);
 
-const getDynamicHeight = ({ user, activity }: BannerProps) => {
-	return BannerDynamicHeights.find((o) => o.condition(user, activity));
-};
-
 export const BannerContextProvider: FC<PropsWithChildren<BannerProps>> = ({
 	children,
 	...props
@@ -30,14 +26,17 @@ export const BannerContextProvider: FC<PropsWithChildren<BannerProps>> = ({
 		height: BANNER_DEFAULT_HEIGHT,
 		width: BANNER_DEFAULT_WIDTH,
 		borderRadius: 14,
-		separator: false,
+		separator: true,
 	};
 
-	const dynamicHeight = getDynamicHeight(props);
+	const dynamicHeight = BannerDynamicHeights.find((o) =>
+		o.condition(props.user, props.activity),
+	);
 
 	if (dynamicHeight) {
 		context.heightScale = dynamicHeight.height / BANNER_DEFAULT_HEIGHT;
 		context.height = dynamicHeight.height;
+		console.log('dynamicHeight.separator', dynamicHeight.separator);
 		context.separator = !!dynamicHeight.separator;
 	}
 
