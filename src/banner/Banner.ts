@@ -146,6 +146,16 @@ class BannerBackground extends BaseBannerEntity {
 		if (userBannerURL) {
 			const backgroundImage = await loadImage(userBannerURL);
 
+			this.canvas.ctx.save();
+
+			this.canvas.ctx.translate(
+				this.x,
+				-(this.canvas.height - backgroundImage.naturalHeight) / 2,
+			);
+			const x = this.width / backgroundImage.naturalWidth;
+
+			this.canvas.ctx.scale(x, x);
+
 			this.canvas.roundImage({
 				image: backgroundImage,
 				x: this.x,
@@ -156,6 +166,8 @@ class BannerBackground extends BaseBannerEntity {
 					tr: borderRadius.tr,
 				},
 			});
+
+			this.canvas.ctx.restore();
 		} else {
 			this.canvas.fillStyle = accentColor ?? BannerColors.DEFAULT_ACCENT_COLOR;
 

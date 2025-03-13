@@ -126,14 +126,14 @@ export const startServer = async () => {
 				(p) => p !== undefined,
 			);
 
-			// if (process.env.NODE_ENV === 'dev') {
-			// 	return renderBanner(res, {
-			// 		memberId,
-			// 		overwrites,
-			// 		cacheHeader,
-			// 		bannerParams,
-			// 	});
-			// }
+			if (process.env.NODE_ENV === 'dev') {
+				return renderBanner(res, {
+					memberId,
+					overwrites,
+					cacheHeader,
+					bannerParams,
+				});
+			}
 
 			const relatedCacheKeys = await scanCacheKeys((candidate) => {
 				const {
