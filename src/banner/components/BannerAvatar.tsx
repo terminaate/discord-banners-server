@@ -1,8 +1,9 @@
 import React, { useContext } from 'react';
 import { bannerContext } from '../BannerContext';
 import { BannerColors } from '../const';
+import { AvatarDecorationsService } from '@/services/AvatarDecorationsService';
 
-export const BannerAvatar = () => {
+const Avatar = () => {
 	const context = useContext(bannerContext);
 
 	const x = 73;
@@ -32,6 +33,37 @@ export const BannerAvatar = () => {
 				y={y}
 				clipPath={`inset(0% round ${radius}px)`}
 			/>
+		</>
+	);
+};
+
+const AvatarDecoration = () => {
+	const { user, bannerOptions } = useContext(bannerContext);
+	if (!user.avatarDecoration) {
+		return null;
+	}
+
+	const decorationURL = AvatarDecorationsService.getDecorationUrl(
+		user.avatarDecoration,
+		bannerOptions?.animated,
+	);
+
+	const height = 189;
+	const width = 189;
+	
+	const x = 58;
+	const y = 121;
+
+	return (
+		<image width={width} height={height} x={x} y={y} href={decorationURL} />
+	);
+};
+
+export const BannerAvatar = () => {
+	return (
+		<>
+			<Avatar />
+			<AvatarDecoration />
 		</>
 	);
 };

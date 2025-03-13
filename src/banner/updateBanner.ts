@@ -25,6 +25,7 @@ export const updateBanner = async (
 	const userDto = await UserDTO.create(member);
 	Object.assign(userDto, overwrites);
 
+	// TODO: maybe find a way to render faster
 	const svg = renderToStaticMarkup(
 		createElement(Banner, {
 			user: userDto,

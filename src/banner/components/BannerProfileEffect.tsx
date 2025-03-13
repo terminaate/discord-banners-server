@@ -1,16 +1,19 @@
 import React, { useContext } from 'react';
 import { bannerContext } from '../BannerContext';
-import { ProfileEffectsService } from '../../services/ProfileEffectsService';
+import { ProfileEffectsService } from '@/services/ProfileEffectsService';
 
 export const BannerProfileEffect = () => {
 	const {
 		width,
 		height,
 		user: { profileEffect },
+		bannerOptions,
 	} = useContext(bannerContext);
 	if (!profileEffect) {
 		return null;
 	}
+
+	const animated = !!bannerOptions?.animated;
 
 	const profileEffectObject =
 		ProfileEffectsService.getProfileEffectById(profileEffect);
@@ -20,7 +23,9 @@ export const BannerProfileEffect = () => {
 
 	const effect = profileEffectObject.config.effects[0];
 
-	const profileEffectURL = effect.src;
+	const profileEffectURL = animated
+		? profileEffectObject.config.reducedMotionSrc
+		: effect.src;
 	const naturalWidth = effect.width;
 	const naturalHeight = effect.height;
 
