@@ -12,6 +12,7 @@ import { BannerNitro } from '@/banner/components/BannerNitro';
 import { BannerActivity } from '@/banner/components/BannerActivity';
 import { BannerCustomStatus } from '@/banner/components/BannerCustomStatus';
 import { BannerSeparator } from '@/banner/components/BannerSeparator';
+import { BannerProfileEffect } from '@/banner/components/BannerProfileEffect';
 
 export type BannerProps = {
 	user: UserDTO;
@@ -62,6 +63,7 @@ export const Banner: FC<BannerProps> = (props) => {
 				<BannerActivity />
 				<BannerCustomStatus />
 				<BannerSeparator />
+				<BannerProfileEffect />
 			</BannerRoot>
 		</BannerContextProvider>
 	);
