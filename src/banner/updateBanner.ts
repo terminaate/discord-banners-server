@@ -6,7 +6,7 @@ import { scanCacheKeys } from '@/utils/scanCacheKeys';
 import { BannerOptions } from '@/types/BannerOptions';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createElement } from 'react';
-import { BannerNew } from '@/banner/Banner.new';
+import { Banner } from '@/banner/Banner';
 import { UserActivityDTO } from '@/dto/user-activity.dto';
 
 // TODO: not remove all cache keys, let's say max count of cache keys for each user  gonna be 3, so there's max 3 versions of banner, rollback date of banner and sort banners by date to  get latest banner's data to render on user changes
@@ -26,7 +26,7 @@ export const updateBanner = async (
 	Object.assign(userDto, overwrites);
 
 	const svg = renderToStaticMarkup(
-		createElement(BannerNew, {
+		createElement(Banner, {
 			user: userDto,
 			activity: activityDto,
 			bannerOptions,

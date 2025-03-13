@@ -1,5 +1,5 @@
 import React, { createContext, FC, PropsWithChildren } from 'react';
-import { BannerProps } from './Banner.new';
+import { BannerProps } from './Banner';
 import {
 	BANNER_DEFAULT_HEIGHT,
 	BANNER_DEFAULT_WIDTH,
@@ -11,6 +11,7 @@ type BannerContext = BannerProps & {
 	height: number;
 	width: number;
 	borderRadius: number;
+	separator: boolean;
 };
 
 export const bannerContext = createContext<BannerContext>({} as BannerContext);
@@ -29,6 +30,7 @@ export const BannerContextProvider: FC<PropsWithChildren<BannerProps>> = ({
 		height: BANNER_DEFAULT_HEIGHT,
 		width: BANNER_DEFAULT_WIDTH,
 		borderRadius: 14,
+		separator: false,
 	};
 
 	const dynamicHeight = getDynamicHeight(props);
@@ -36,6 +38,7 @@ export const BannerContextProvider: FC<PropsWithChildren<BannerProps>> = ({
 	if (dynamicHeight) {
 		context.heightScale = dynamicHeight.height / BANNER_DEFAULT_HEIGHT;
 		context.height = dynamicHeight.height;
+		context.separator = !!dynamicHeight.separator;
 	}
 
 	return (

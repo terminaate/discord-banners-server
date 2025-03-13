@@ -19,7 +19,7 @@ import { BannerOptions } from '@/types/BannerOptions';
 import { getDataFromCacheKey } from '@/utils/getDataFromCacheKey';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createElement } from 'react';
-import { BannerNew } from '@/banner/Banner.new';
+import { Banner } from '@/banner/Banner';
 
 type BannerRequest = Request<
 	{ memberId: string },
@@ -75,6 +75,7 @@ export const startServer = async () => {
 	app.use(express.json());
 	app.use(bodyExceptionMiddleware);
 	app.use(morgan(process.env.NODE_ENV === 'dev' ? 'dev' : 'common'));
+	app.use(express.static('./assets'));
 
 	app.get('/profile-effects', (req, res) => {
 		res.status(200);
@@ -83,7 +84,7 @@ export const startServer = async () => {
 
 	app.get('/new-banner', (req, res) => {
 		res.setHeader('Content-Type', 'image/svg+xml');
-		return res.status(200).send(renderToStaticMarkup(createElement(BannerNew)));
+		return res.status(200).send(renderToStaticMarkup(createElement(Banner)));
 	});
 
 	app.get('/decorations', (req, res) => {
