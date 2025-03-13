@@ -15,8 +15,11 @@ import { getMemberByIdOrUsername } from '@/utils/getMemberByIdOrUsername';
 import { updateBanner } from '@/banner/updateBanner';
 import { redisClient } from '@/redis';
 import { scanCacheKeys } from '@/utils/scanCacheKeys';
-import { BannerParams } from '@/types/BannerParams';
+import { BannerOptions } from '@/types/BannerOptions';
 import { getDataFromCacheKey } from '@/utils/getDataFromCacheKey';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { createElement } from 'react';
+import { BannerNew } from '@/banner/Banner.new';
 
 type BannerRequest = Request<
 	{ memberId: string },
@@ -34,7 +37,7 @@ type BannerRequest = Request<
 type RenderBannerOpts = {
 	memberId: string;
 	overwrites?: Partial<Record<keyof UserDTO, string>>;
-	bannerParams?: BannerParams;
+	bannerParams?: BannerOptions;
 	cacheHeader: string;
 };
 
@@ -78,6 +81,11 @@ export const startServer = async () => {
 		res.json(ProfileEffectsService.getAll());
 	});
 
+	app.get('/new-banner', (req, res) => {
+		res.setHeader('Content-Type', 'image/svg+xml');
+		return res.status(200).send(renderToStaticMarkup(createElement(BannerNew)));
+	});
+
 	app.get('/decorations', (req, res) => {
 		res.status(200);
 		res.json(AvatarDecorationsService.getAll());
@@ -108,7 +116,7 @@ export const startServer = async () => {
 
 			const cacheHeader = getCacheHeader(needToCacheResponse);
 
-			const bannerParams: BannerParams = {
+			const bannerParams: BannerOptions = {
 				compact,
 				animated,
 			};
@@ -126,14 +134,14 @@ export const startServer = async () => {
 				(p) => p !== undefined,
 			);
 
-			// if (process.env.NODE_ENV === 'dev') {
-			// 	return renderBanner(res, {
-			// 		memberId,
-			// 		overwrites,
-			// 		cacheHeader,
-			// 		bannerParams,
-			// 	});
-			// }
+			if (process.env.NODE_ENV === 'dev') {
+				return renderBanner(res, {
+					memberId,
+					overwrites,
+					cacheHeader,
+					bannerParams,
+				});
+			}
 
 			const relatedCacheKeys = await scanCacheKeys((candidate) => {
 				const {

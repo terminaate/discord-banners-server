@@ -1,11 +1,11 @@
-import { BannerParams } from '@/types/BannerParams';
+import { BannerOptions } from '@/types/BannerOptions';
 import { UserDTO } from '@/dto/user.dto';
 
 type DataFromCacheKey = {
 	userId: string;
 	username: string;
 	overwrites?: Partial<Record<keyof UserDTO, string>>;
-	bannerParams?: BannerParams;
+	bannerParams?: BannerOptions;
 };
 
 export const getDataFromCacheKey = (cacheKey: string): DataFromCacheKey => {

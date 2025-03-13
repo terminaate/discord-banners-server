@@ -7,7 +7,9 @@
     "baseUrl": "./",
     "rootDir": "./src",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     },
     "target": "ESNext",
     "module": "CommonJS",
@@ -18,9 +20,10 @@
     "strictPropertyInitialization": false,
     "noImplicitAny": false,
     "resolveJsonModule": true,
+    "jsx": "react-jsx"
   },
   "include": [
-    "./src/**/*.ts",
+    "./src/**/*.ts"
   ],
   "exclude": [
     "./node_modules",

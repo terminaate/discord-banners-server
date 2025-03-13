@@ -41,6 +41,10 @@ export const BannerColors = {
 	INFO_COLOR: '#18191C',
 };
 
+export const BANNER_DEFAULT_WIDTH = 961;
+export const BANNER_COMPACT_WIDTH = 600;
+export const BANNER_DEFAULT_HEIGHT = 466;
+
 export const BannerDynamicHeights: BannerDynamicHeight[] = [
 	{
 		condition(user, activity) {

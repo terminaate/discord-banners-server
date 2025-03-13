@@ -9,7 +9,7 @@ export class UserDTO {
 	status?: string | null;
 	customStatus?: string | null;
 	publicFlags?: number | null;
-	accentColor?: string | null;
+	accentColor: string;
 	premiumSince?: number | null;
 	profileEffect?: string;
 	avatarDecoration?: string | null;
