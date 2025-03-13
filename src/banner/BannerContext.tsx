@@ -36,7 +36,6 @@ export const BannerContextProvider: FC<PropsWithChildren<BannerProps>> = ({
 	if (dynamicHeight) {
 		context.heightScale = dynamicHeight.height / BANNER_DEFAULT_HEIGHT;
 		context.height = dynamicHeight.height;
-		console.log('dynamicHeight.separator', dynamicHeight.separator);
 		context.separator = !!dynamicHeight.separator;
 	}
 
