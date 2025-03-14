@@ -15,6 +15,8 @@ import { getMemberByIdOrUsername } from '@/utils/getMemberByIdOrUsername';
 import { updateBanner } from '@/banner/updateBanner';
 import { BannerOptions } from '@/types/BannerOptions';
 import { CacheService } from '@/services/CacheService';
+import { pickBy } from 'lodash';
+import { FakeProfileService } from '@/services/FakeProfileService';
 
 type BannerRequest = Request<
 	{ memberId: string },
@@ -26,6 +28,7 @@ type BannerRequest = Request<
 		decoration?: string;
 		animated?: boolean;
 		compact?: boolean;
+		fakeProfile?: boolean;
 	}
 >;
 
@@ -36,14 +39,31 @@ type RenderBannerOpts = {
 	cacheHeader: string;
 };
 
+const userIdsCache: Record<string, string> = {};
+
+const getMemberId = async (idOrUsername: string) => {
+	const candidate = userIdsCache[idOrUsername];
+	if (candidate) {
+		return candidate;
+	}
+
+	const member = await getMemberByIdOrUsername(idOrUsername);
+
+	userIdsCache[idOrUsername] = String(member?.id);
+
+	return String(member?.id);
+};
+
 async function renderBanner(
 	res: Response,
-	{ memberId, cacheHeader, overwrites, bannerOptions }: RenderBannerOpts,
+	{ memberId, cacheHeader, overwrites = {}, bannerOptions }: RenderBannerOpts,
 ) {
 	const candidate = await getMemberByIdOrUsername(memberId);
 	if (!candidate) {
 		return res.status(404).send('User not found');
 	}
+
+	userIdsCache[memberId] = candidate.id;
 
 	const svg = await updateBanner(
 		candidate,
@@ -88,6 +108,7 @@ export const startServer = async () => {
 		query('cache').optional().isBoolean().toBoolean(),
 		query('animated').optional().default(true).isBoolean().toBoolean(),
 		query('compact').optional().default(false).isBoolean().toBoolean(),
+		query('fakeProfile').optional().default(false).isBoolean().toBoolean(),
 		query('profileEffect').optional().custom(validateProfileEffect),
 		query('decoration').optional().custom(validateDecoration),
 		async (req: BannerRequest, res: Response) => {
@@ -102,6 +123,7 @@ export const startServer = async () => {
 				decoration,
 				compact = false,
 				animated = true,
+				fakeProfile = false,
 			} = req.query;
 			const { memberId } = req.params;
 
@@ -112,10 +134,20 @@ export const startServer = async () => {
 				animated,
 			};
 
-			const overwrites: Partial<Record<keyof UserDTO, string>> = {
-				profileEffect,
-				avatarDecoration: decoration,
-			};
+			const overwrites: Partial<Record<keyof UserDTO, string>> = pickBy(
+				{
+					profileEffect,
+					avatarDecoration: decoration,
+				},
+				(p) => p !== undefined,
+			);
+			if (fakeProfile) {
+				const realUserId = await getMemberId(memberId);
+				const fakeProfileData =
+					await FakeProfileService.getUserById(realUserId);
+
+				Object.assign(overwrites, fakeProfileData);
+			}
 
 			// if (process.env.NODE_ENV === 'dev') {
 			// 	return renderBanner(res, {

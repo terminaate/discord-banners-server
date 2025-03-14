@@ -60,6 +60,7 @@ export class CacheService {
 		bannerOptions = { compact: false, animated: true },
 		overwrites = {},
 	}: GetFromCacheOpts) {
+		// TODO: simplify with lodash
 		const data: CacheKeyData = {};
 
 		if (Object.values(overwrites ?? {}).some((p) => p !== undefined)) {
@@ -82,17 +83,6 @@ export class CacheService {
 
 			return isSameUser && isSameData;
 		});
-
-		const allRelatedKeys = await this.scanCacheKeys((candidate) =>
-			candidate.includes(userId),
-		);
-
-		console.log(
-			'relatedCacheKeys',
-			relatedCacheKeys,
-			'allRelatedKeys',
-			allRelatedKeys,
-		);
 
 		const cacheKey = relatedCacheKeys[0];
 		if (!cacheKey) {
@@ -122,6 +112,7 @@ export class CacheService {
 	}: GenerateCacheKeyOpts) {
 		const cacheKey = `${userId}@${username}`;
 
+		// TODO: simplify with lodash
 		const data: CacheKeyData = {};
 
 		if (Object.values(overwrites ?? {}).some((p) => p !== undefined)) {

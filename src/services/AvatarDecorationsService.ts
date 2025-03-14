@@ -1,19 +1,16 @@
 import { AvatarDecoration } from '@/types/AvatarDecoration';
-import axios from 'axios';
+import { fakeProfileApi } from '@/services/fakeProfileApi';
 
 export class AvatarDecorationsService {
 	private static decorations: AvatarDecoration[] = [];
-	private static readonly DECORATIONS_ENDPOINT =
-		'https://fakeprofile.is-always.online/decorations';
 
 	public static getAll() {
 		return this.decorations;
 	}
 
 	public static async init() {
-		const { data: decorations } = await axios.get<typeof this.decorations>(
-			this.DECORATIONS_ENDPOINT,
-		);
+		const { data: decorations } =
+			await fakeProfileApi.get<typeof this.decorations>('/decorations');
 
 		this.decorations = decorations;
 

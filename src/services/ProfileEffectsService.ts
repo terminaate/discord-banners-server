@@ -1,19 +1,16 @@
 import { ProfileEffect } from '@/types/ProfileEffect';
-import axios from 'axios';
+import { fakeProfileApi } from '@/services/fakeProfileApi';
 
 export class ProfileEffectsService {
 	private static profileEffects: Record<string, ProfileEffect> = {};
-	private static readonly PROFILE_EFFECTS_ENDPOINT =
-		'https://fakeprofile.is-always.online/profile-effects';
 
 	public static getAll() {
 		return this.profileEffects;
 	}
 
 	public static async init() {
-		const { data: effects } = await axios.get<typeof this.profileEffects>(
-			this.PROFILE_EFFECTS_ENDPOINT,
-		);
+		const { data: effects } =
+			await fakeProfileApi.get<typeof this.profileEffects>('/profile-effects');
 
 		this.profileEffects = effects;
 
@@ -22,21 +19,5 @@ export class ProfileEffectsService {
 
 	public static getProfileEffectById(id: string) {
 		return this.profileEffects[id];
-	}
-
-	public static getProfileEffectUrlById(
-		id: string,
-		animated = true,
-	): string | undefined {
-		const profileEffect = this.profileEffects[id];
-		if (!profileEffect) {
-			return;
-		}
-
-		if (!animated) {
-			return profileEffect.config.reducedMotionSrc;
-		}
-
-		return profileEffect.config.effects[0].src;
 	}
 }
