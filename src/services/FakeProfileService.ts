@@ -11,16 +11,16 @@ export class FakeProfileService {
 	public static async getUserById(
 		userId: string,
 	): Promise<Partial<Record<keyof UserDTO, string>>> {
+		if (!userId) {
+			return {};
+		}
+
 		const candidate = await this.cache.get(userId);
 		if (candidate) {
 			return candidate;
 		}
 
 		try {
-			if (!userId) {
-				return {};
-			}
-
 			const { data: fakeProfileData } =
 				await fakeProfileApi.get<FakeProfileData>(`/v3/user/${userId}`);
 

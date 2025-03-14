@@ -17,6 +17,7 @@ import { BannerOptions } from '@/types/BannerOptions';
 import { CacheService } from '@/services/CacheService';
 import { pickBy, sum } from 'lodash';
 import { FakeProfileService } from '@/services/FakeProfileService';
+import { discordClient } from '@/bot';
 
 type BannerRequest = Request<
 	{ memberId: string },
@@ -39,19 +40,45 @@ type RenderBannerOpts = {
 	cacheHeader: string;
 };
 
-const userIdsCache: Record<string, string> = {};
+const getUserByIdOrUsername = (idOrUsername: string) => {
+	return discordClient.users.cache.find(
+		(o) => o.id === idOrUsername || o.username === idOrUsername,
+	);
+};
 
-const getMemberId = async (idOrUsername: string) => {
-	const candidate = userIdsCache[idOrUsername];
-	if (candidate) {
-		return candidate;
+const getBannerDataFromRequest = async (req: BannerRequest) => {
+	const {
+		profileEffect,
+		decoration,
+		compact = false,
+		animated = true,
+		fakeProfile = false,
+	} = req.query;
+	const { memberId } = req.params;
+
+	const bannerOptions: BannerOptions = {
+		compact,
+		animated,
+	};
+
+	const overwrites: Partial<Record<keyof UserDTO, string>> = pickBy(
+		{
+			profileEffect,
+			avatarDecoration: decoration,
+		},
+		(p) => p !== undefined,
+	);
+
+	if (fakeProfile) {
+		const user = getUserByIdOrUsername(memberId);
+		const fakeProfileData = await FakeProfileService.getUserById(
+			user?.id as string,
+		);
+
+		Object.assign(overwrites, fakeProfileData);
 	}
 
-	const member = await getMemberByIdOrUsername(idOrUsername);
-
-	userIdsCache[idOrUsername] = String(member?.id);
-
-	return String(member?.id);
+	return { overwrites, bannerOptions };
 };
 
 const handleBannerRenderRequest = async (
@@ -62,8 +89,6 @@ const handleBannerRenderRequest = async (
 	if (!candidate) {
 		return res.status(404).send('User not found');
 	}
-
-	userIdsCache[memberId] = candidate.id;
 
 	const svg = await renderBanner(
 		candidate,
@@ -116,40 +141,15 @@ export const startServer = async () => {
 				return res.json({ errors: validationErrors.array() });
 			}
 
-			const {
-				cache,
-				profileEffect,
-				decoration,
-				compact = false,
-				animated = true,
-				fakeProfile = false,
-			} = req.query;
 			const { memberId } = req.params;
+			const { cache } = req.query;
 
 			const member = await getMemberByIdOrUsername(memberId);
 			if (!member) {
 				return res.status(404).send('User not found');
 			}
 
-			const bannerOptions: BannerOptions = {
-				compact,
-				animated,
-			};
-
-			const overwrites: Partial<Record<keyof UserDTO, string>> = pickBy(
-				{
-					profileEffect,
-					avatarDecoration: decoration,
-				},
-				(p) => p !== undefined,
-			);
-			if (fakeProfile) {
-				const realUserId = await getMemberId(memberId);
-				const fakeProfileData =
-					await FakeProfileService.getUserById(realUserId);
-
-				Object.assign(overwrites, fakeProfileData);
-			}
+			const { overwrites, bannerOptions } = await getBannerDataFromRequest(req);
 
 			const results: Record<string, number> = {};
 
@@ -207,37 +207,12 @@ export const startServer = async () => {
 				return res.json({ errors: validationErrors.array() });
 			}
 
-			const {
-				cache: needToCacheResponse,
-				profileEffect,
-				decoration,
-				compact = false,
-				animated = true,
-				fakeProfile = false,
-			} = req.query;
+			const { cache: needToCacheResponse } = req.query;
 			const { memberId } = req.params;
 
 			const cacheHeader = getCacheHeader(needToCacheResponse);
 
-			const bannerOptions: BannerOptions = {
-				compact,
-				animated,
-			};
-
-			const overwrites: Partial<Record<keyof UserDTO, string>> = pickBy(
-				{
-					profileEffect,
-					avatarDecoration: decoration,
-				},
-				(p) => p !== undefined,
-			);
-			if (fakeProfile) {
-				const realUserId = await getMemberId(memberId);
-				const fakeProfileData =
-					await FakeProfileService.getUserById(realUserId);
-
-				Object.assign(overwrites, fakeProfileData);
-			}
+			const { overwrites, bannerOptions } = await getBannerDataFromRequest(req);
 
 			if (process.env.NODE_ENV === 'dev') {
 				return handleBannerRenderRequest(res, {
