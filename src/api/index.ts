@@ -15,7 +15,7 @@ import { getMemberByIdOrUsername } from '@/utils/getMemberByIdOrUsername';
 import { renderBanner } from '@/banner/renderBanner';
 import { BannerOptions } from '@/types/BannerOptions';
 import { CacheService } from '@/services/CacheService';
-import { pickBy } from 'lodash';
+import { pickBy, sum } from 'lodash';
 import { FakeProfileService } from '@/services/FakeProfileService';
 
 type BannerRequest = Request<
@@ -117,6 +117,7 @@ export const startServer = async () => {
 			}
 
 			const {
+				cache,
 				profileEffect,
 				decoration,
 				compact = false,
@@ -154,20 +155,39 @@ export const startServer = async () => {
 
 			for (let i = 0; i < 100; i++) {
 				const startDate = Date.now();
-				await renderBanner(
-					member,
-					member.presence?.activities,
-					overwrites,
-					bannerOptions,
-				);
+
+				if (cache) {
+					const cachedBanner = await CacheService.getFromCache({
+						userId: memberId,
+						overwrites,
+						bannerOptions,
+					});
+
+					if (!cachedBanner) {
+						await renderBanner(
+							member,
+							member.presence?.activities,
+							overwrites,
+							bannerOptions,
+						);
+					}
+				} else {
+					await renderBanner(
+						member,
+						member.presence?.activities,
+						overwrites,
+						bannerOptions,
+					);
+				}
+
 				const endDate = Date.now();
 
 				results[i] = endDate - startDate;
 			}
 
-			const averageTime =
-				Object.values(results).reduce((acc, curr) => acc + curr, 0) /
-				Object.values(results).length;
+			const values = Object.values(results);
+
+			const averageTime = sum(values) / values.length;
 
 			res.json({ averageTime, results });
 		},
