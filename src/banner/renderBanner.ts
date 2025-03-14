@@ -1,11 +1,10 @@
 import { Activity, ActivityType, GuildMember } from 'discord.js';
 import { UserDTO } from '@/dto/user.dto';
 import { BannerOptions } from '@/types/BannerOptions';
-import { Banner } from '@/banner/Banner';
 import { UserActivityDTO } from '@/dto/user-activity.dto';
-import render from 'preact-render-to-string';
 import React from 'preact/compat';
 import { CacheService } from '@/services/CacheService';
+import { Banner } from '@/banner/Banner';
 
 global.React = React;
 
@@ -21,13 +20,13 @@ export const renderBanner = async (
 	const userDto = await UserDTO.create(member);
 	Object.assign(userDto, overwrites);
 
-	const svg = render(
-		<Banner
-			bannerOptions={bannerOptions}
-			user={userDto}
-			activity={activityDto}
-		/>,
+	const bannerInstance = await Banner.create(
+		userDto,
+		activityDto,
+		bannerOptions,
 	);
+
+	const svg = bannerInstance.toBuffer().toString();
 
 	await CacheService.setInCache(
 		{
