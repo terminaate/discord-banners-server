@@ -104,7 +104,7 @@ export const startServer = async () => {
 
 	app.get(
 		'/banner/:memberId',
-		query('cache').optional().isBoolean().toBoolean(),
+		query('cache').optional().default(true).isBoolean().toBoolean(),
 		query('animated').optional().default(true).isBoolean().toBoolean(),
 		query('compact').optional().default(false).isBoolean().toBoolean(),
 		query('fakeProfile').optional().default(false).isBoolean().toBoolean(),
