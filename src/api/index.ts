@@ -149,14 +149,14 @@ export const startServer = async () => {
 				Object.assign(overwrites, fakeProfileData);
 			}
 
-			// if (process.env.NODE_ENV === 'dev') {
-			// 	return renderBanner(res, {
-			// 		memberId,
-			// 		overwrites,
-			// 		cacheHeader,
-			// 		bannerOptions,
-			// 	});
-			// }
+			if (process.env.NODE_ENV === 'dev') {
+				return renderBanner(res, {
+					memberId,
+					overwrites,
+					cacheHeader,
+					bannerOptions,
+				});
+			}
 
 			const cachedBanner = await CacheService.getFromCache({
 				userId: memberId,

@@ -14,6 +14,7 @@ export const BannerProfileEffect = () => {
 	}
 
 	const animated = !!bannerOptions?.animated;
+	console.log('animated', animated);
 
 	const profileEffectObject =
 		ProfileEffectsService.getProfileEffectById(profileEffect);
@@ -24,8 +25,8 @@ export const BannerProfileEffect = () => {
 	const effect = profileEffectObject.config.effects[0];
 
 	const profileEffectURL = animated
-		? profileEffectObject.config.reducedMotionSrc
-		: effect.src;
+		? effect.src
+		: profileEffectObject.config.reducedMotionSrc;
 	const naturalWidth = effect.width;
 	const naturalHeight = effect.height;
 
