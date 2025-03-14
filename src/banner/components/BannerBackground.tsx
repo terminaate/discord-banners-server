@@ -1,6 +1,6 @@
-import React, { useContext } from 'react';
 import { bannerContext } from '../BannerContext';
 import { BannerColors } from '../const';
+import { useContext } from 'preact/compat';
 
 export const BannerBackground = () => {
 	const context = useContext(bannerContext);

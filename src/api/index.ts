@@ -17,9 +17,6 @@ import { redisClient } from '@/redis';
 import { scanCacheKeys } from '@/utils/scanCacheKeys';
 import { BannerOptions } from '@/types/BannerOptions';
 import { getDataFromCacheKey } from '@/utils/getDataFromCacheKey';
-import { renderToStaticMarkup } from 'react-dom/server';
-import { createElement } from 'react';
-import { Banner } from '@/banner/Banner';
 
 type BannerRequest = Request<
 	{ memberId: string },
@@ -80,11 +77,6 @@ export const startServer = async () => {
 	app.get('/profile-effects', (req, res) => {
 		res.status(200);
 		res.json(ProfileEffectsService.getAll());
-	});
-
-	app.get('/new-banner', (req, res) => {
-		res.setHeader('Content-Type', 'image/svg+xml');
-		return res.status(200).send(renderToStaticMarkup(createElement(Banner)));
 	});
 
 	app.get('/decorations', (req, res) => {

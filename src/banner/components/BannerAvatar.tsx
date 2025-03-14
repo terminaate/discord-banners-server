@@ -1,7 +1,7 @@
-import React, { useContext } from 'react';
 import { bannerContext } from '../BannerContext';
 import { BannerColors } from '../const';
 import { AvatarDecorationsService } from '@/services/AvatarDecorationsService';
+import { useContext } from 'preact/compat';
 
 const Avatar = () => {
 	const context = useContext(bannerContext);
@@ -50,7 +50,7 @@ const AvatarDecoration = () => {
 
 	const height = 189;
 	const width = 189;
-	
+
 	const x = 58;
 	const y = 121;
 

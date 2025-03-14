@@ -1,4 +1,3 @@
-import React, { FC, PropsWithChildren, useContext } from 'react';
 import { UserDTO } from '@/dto/user.dto';
 import { UserActivityDTO } from '@/dto/user-activity.dto';
 import { BannerOptions } from '@/types/BannerOptions';
@@ -13,6 +12,7 @@ import { BannerActivity } from '@/banner/components/BannerActivity';
 import { BannerCustomStatus } from '@/banner/components/BannerCustomStatus';
 import { BannerSeparator } from '@/banner/components/BannerSeparator';
 import { BannerProfileEffect } from '@/banner/components/BannerProfileEffect';
+import { FC, PropsWithChildren, useContext } from 'preact/compat';
 
 export type BannerProps = {
 	user: UserDTO;

@@ -1,6 +1,6 @@
-import React, { useContext } from 'react';
 import { bannerContext } from '../BannerContext';
 import { PublicFlagsImages } from '../const';
+import { useContext } from 'preact/compat';
 
 export const BannerPublicFlags = () => {
 	const context = useContext(bannerContext);

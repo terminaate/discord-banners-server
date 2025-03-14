@@ -20,7 +20,11 @@
     "strictPropertyInitialization": false,
     "noImplicitAny": false,
     "resolveJsonModule": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "types": [
+      "preact"
+    ]
   },
   "include": [
     "./src/**/*.ts"

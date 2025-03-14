@@ -1,6 +1,6 @@
-import React, { useContext } from 'react';
 import { bannerContext } from '../BannerContext';
 import { ActivitiesText, BANNER_START_CONTENT_X, BannerColors } from '../const';
+import { useContext } from 'preact/compat';
 
 const x = BANNER_START_CONTENT_X;
 const y = 371;
@@ -101,7 +101,7 @@ const ActivityStartTime = () => {
 	const differenceInMin = (currentTime - startTimestamp) / 100_000;
 	const differenceInHour = (currentTime - startTimestamp) / 100_000 / 60;
 	let timeText: string =
-		'Just started ' + ActivitiesText[activityType].toLowerCase();
+		`Just started ${  ActivitiesText[activityType].toLowerCase()}`;
 
 	if (differenceInMin >= 1) {
 		timeText = `for ${Math.ceil(differenceInMin)} minutes`;

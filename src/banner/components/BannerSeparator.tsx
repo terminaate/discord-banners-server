@@ -1,6 +1,6 @@
-import React, { useContext } from 'react';
 import { bannerContext } from '../BannerContext';
 import { BANNER_START_CONTENT_X } from '../const';
+import { useContext } from 'preact/compat';
 
 export const BannerSeparator = () => {
 	const { separator, heightScale } = useContext(bannerContext);

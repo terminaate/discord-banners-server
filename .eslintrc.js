@@ -18,6 +18,7 @@ module.exports = {
 		'plugin:import/recommended',
 		'plugin:import/errors',
 		'plugin:import/warnings',
+		'preact',
 	],
 	rules: {
 		'@typescript-eslint/interface-name-prefix': 'off',

@@ -1,6 +1,6 @@
-import React, { useContext } from 'react';
 import { bannerContext } from '../BannerContext';
 import { ProfileEffectsService } from '@/services/ProfileEffectsService';
+import { useContext } from 'preact/compat';
 
 export const BannerProfileEffect = () => {
 	const {

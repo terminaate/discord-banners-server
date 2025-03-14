@@ -1,6 +1,6 @@
-import React, { useContext } from 'react';
 import { bannerContext } from '../BannerContext';
 import { BANNER_START_CONTENT_X, BannerColors } from '../const';
+import { useContext } from 'preact/compat';
 
 export const BannerCustomStatus = () => {
 	const { user } = useContext(bannerContext);
@@ -17,7 +17,7 @@ export const BannerCustomStatus = () => {
 	let statusText = customStatus;
 
 	if (statusText.length > maxLength) {
-		statusText = statusText.slice(0, maxLength) + '...';
+		statusText = `${statusText.slice(0, maxLength)  }...`;
 	}
 
 	return (

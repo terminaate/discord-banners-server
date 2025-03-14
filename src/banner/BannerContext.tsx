@@ -1,10 +1,10 @@
-import React, { createContext, FC, PropsWithChildren } from 'react';
 import { BannerProps } from './Banner';
 import {
 	BANNER_DEFAULT_HEIGHT,
 	BANNER_DEFAULT_WIDTH,
 	BannerDynamicHeights,
 } from './const';
+import { createContext, FC, PropsWithChildren } from 'preact/compat';
 
 type BannerContext = BannerProps & {
 	heightScale: number;

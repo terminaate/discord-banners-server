@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
 import { bannerContext } from '../BannerContext';
+import { useContext } from 'preact/compat';
 
 export const BannerNitro = () => {
 	const context = useContext(bannerContext);

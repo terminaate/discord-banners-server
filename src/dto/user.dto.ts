@@ -21,7 +21,7 @@ export class UserDTO {
 		this.username = username;
 		this.avatar = member.displayAvatarURL({ size: 256, extension: 'png' });
 		this.banner = member.user.bannerURL({ size: 1024, extension: 'png' });
-		this.status = member.presence?.status;
+		this.status = member.presence?.status ?? 'offline';
 		this.publicFlags = member.user.flags?.bitfield;
 		this.accentColor = member.displayHexColor ?? '#fff';
 		this.premiumSince = member.premiumSinceTimestamp;
