@@ -1,4 +1,4 @@
-export type BannerParams = {
+export type BannerOptions = {
 	animated?: boolean;
 	compact?: boolean;
 };

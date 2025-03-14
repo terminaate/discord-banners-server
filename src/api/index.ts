@@ -15,7 +15,7 @@ import { getMemberByIdOrUsername } from '@/utils/getMemberByIdOrUsername';
 import { updateBanner } from '@/banner/updateBanner';
 import { redisClient } from '@/redis';
 import { scanCacheKeys } from '@/utils/scanCacheKeys';
-import { BannerParams } from '@/types/BannerParams';
+import { BannerOptions } from '@/types/BannerOptions';
 import { getDataFromCacheKey } from '@/utils/getDataFromCacheKey';
 
 type BannerRequest = Request<
@@ -34,7 +34,7 @@ type BannerRequest = Request<
 type RenderBannerOpts = {
 	memberId: string;
 	overwrites?: Partial<Record<keyof UserDTO, string>>;
-	bannerParams?: BannerParams;
+	bannerParams?: BannerOptions;
 	cacheHeader: string;
 };
 
@@ -72,6 +72,7 @@ export const startServer = async () => {
 	app.use(express.json());
 	app.use(bodyExceptionMiddleware);
 	app.use(morgan(process.env.NODE_ENV === 'dev' ? 'dev' : 'common'));
+	app.use(express.static('./assets'));
 
 	app.get('/profile-effects', (req, res) => {
 		res.status(200);
@@ -108,7 +109,7 @@ export const startServer = async () => {
 
 			const cacheHeader = getCacheHeader(needToCacheResponse);
 
-			const bannerParams: BannerParams = {
+			const bannerParams: BannerOptions = {
 				compact,
 				animated,
 			};

@@ -1,5 +1,5 @@
 import { UserDTO } from '@/dto/user.dto';
-import { BannerParams } from '@/types/BannerParams';
+import { BannerOptions } from '@/types/BannerOptions';
 import { CacheKeyData } from '@/types/CacheKeyData';
 
 // @note: format - {memberId}@{username}@{{overwrites?}{bannerParams?}}
@@ -7,7 +7,7 @@ export const getCacheKey = async (
 	userId: string,
 	username: string,
 	overwrites?: Partial<Record<keyof UserDTO, string>>,
-	bannerParams?: BannerParams,
+	bannerParams?: BannerOptions,
 ) => {
 	const cacheKey = `${userId}@${username}`;
 

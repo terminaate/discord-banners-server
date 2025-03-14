@@ -1,38 +1,47 @@
 import { Activity, ActivityType, GuildMember } from 'discord.js';
-import { Banner } from '@/banner/Banner';
 import { UserDTO } from '@/dto/user.dto';
-import { UserActivityDTO } from '@/dto/user-activity.dto';
 import { redisClient } from '@/redis';
 import { getCacheKey } from '@/utils/getCacheKey';
 import { scanCacheKeys } from '@/utils/scanCacheKeys';
-import { BannerParams } from '@/types/BannerParams';
+import { BannerOptions } from '@/types/BannerOptions';
+import { Banner } from '@/banner/Banner';
+import { UserActivityDTO } from '@/dto/user-activity.dto';
+import render from 'preact-render-to-string';
+import React from 'preact/compat';
+
+global.React = React;
 
 // TODO: not remove all cache keys, let's say max count of cache keys for each user  gonna be 3, so there's max 3 versions of banner, rollback date of banner and sort banners by date to  get latest banner's data to render on user changes
+
+// TODO: add abstraction for cache
 
 export const updateBanner = async (
 	member: GuildMember,
 	activities?: Activity[],
 	overwrites?: Partial<Record<keyof UserDTO, string>>,
-	bannerParams?: BannerParams,
+	bannerOptions?: BannerOptions,
 ) => {
 	const activity = activities?.find((o) => o.type !== ActivityType.Custom);
+	const activityDto = activity ? new UserActivityDTO(activity) : undefined;
 
 	const userDto = await UserDTO.create(member);
 	Object.assign(userDto, overwrites);
 
-	const canvas = await Banner.create(
-		userDto,
-		activity ? new UserActivityDTO(activity) : undefined,
-		bannerParams,
+	const svg = render(
+		<Banner
+			bannerOptions={bannerOptions}
+			user={userDto}
+			activity={activityDto}
+		/>,
 	);
 
-	const res = canvas.toBuffer().toString();
+	// console.log(svg.length);
 
 	const cachedKey = await getCacheKey(
 		userDto.id,
 		userDto.username,
 		overwrites,
-		bannerParams,
+		bannerOptions,
 	);
 
 	const relativeCacheKeys = await scanCacheKeys((candidate) =>
@@ -42,7 +51,7 @@ export const updateBanner = async (
 		await redisClient.del(trashKey);
 	}
 
-	await redisClient.set(cachedKey, res);
+	await redisClient.set(cachedKey, svg);
 
-	return res;
+	return svg;
 };
