@@ -13,10 +13,8 @@ import {
 import { UserDTO } from '@/dto/user.dto';
 import { getMemberByIdOrUsername } from '@/utils/getMemberByIdOrUsername';
 import { updateBanner } from '@/banner/updateBanner';
-import { redisClient } from '@/redis';
-import { scanCacheKeys } from '@/utils/scanCacheKeys';
 import { BannerOptions } from '@/types/BannerOptions';
-import { getDataFromCacheKey } from '@/utils/getDataFromCacheKey';
+import { CacheService } from '@/services/CacheService';
 
 type BannerRequest = Request<
 	{ memberId: string },
@@ -34,13 +32,13 @@ type BannerRequest = Request<
 type RenderBannerOpts = {
 	memberId: string;
 	overwrites?: Partial<Record<keyof UserDTO, string>>;
-	bannerParams?: BannerOptions;
+	bannerOptions?: BannerOptions;
 	cacheHeader: string;
 };
 
 async function renderBanner(
 	res: Response,
-	{ memberId, cacheHeader, overwrites, bannerParams }: RenderBannerOpts,
+	{ memberId, cacheHeader, overwrites, bannerOptions }: RenderBannerOpts,
 ) {
 	const candidate = await getMemberByIdOrUsername(memberId);
 	if (!candidate) {
@@ -51,7 +49,7 @@ async function renderBanner(
 		candidate,
 		candidate.presence?.activities,
 		overwrites,
-		bannerParams,
+		bannerOptions,
 	);
 
 	res.setHeader('Content-Type', 'image/svg+xml');
@@ -109,70 +107,41 @@ export const startServer = async () => {
 
 			const cacheHeader = getCacheHeader(needToCacheResponse);
 
-			const bannerParams: BannerOptions = {
+			const bannerOptions: BannerOptions = {
 				compact,
 				animated,
 			};
-			const stringifyBannerParams = JSON.stringify(bannerParams);
-			const isBannerParams = Object.values(bannerParams).some(
-				(p) => p !== undefined,
-			);
 
 			const overwrites: Partial<Record<keyof UserDTO, string>> = {
 				profileEffect,
 				avatarDecoration: decoration,
 			};
-			const stringifyOverwrites = JSON.stringify(overwrites);
-			const isOverwrites = Object.values(overwrites).some(
-				(p) => p !== undefined,
-			);
 
 			// if (process.env.NODE_ENV === 'dev') {
 			// 	return renderBanner(res, {
 			// 		memberId,
 			// 		overwrites,
 			// 		cacheHeader,
-			// 		bannerParams,
+			// 		bannerOptions,
 			// 	});
 			// }
 
-			const relatedCacheKeys = await scanCacheKeys((candidate) => {
-				const {
-					bannerParams: candidateBannerParams,
-					overwrites: candidateOverwrites,
-					username,
-					userId,
-				} = getDataFromCacheKey(candidate);
-
-				const isSameUser = userId === memberId || username === memberId;
-				const isSameOverwrites =
-					JSON.stringify(candidateOverwrites) === stringifyOverwrites;
-				const isSameBannerParams =
-					JSON.stringify(candidateBannerParams) === stringifyBannerParams;
-
-				if (isOverwrites && isBannerParams) {
-					return isSameUser && isSameOverwrites && isSameBannerParams;
-				} else if (isOverwrites) {
-					return isSameUser && isSameOverwrites;
-				} else if (isBannerParams) {
-					return isSameUser && isSameBannerParams;
-				} 
-					return isSameUser;
-				
+			const cachedBanner = await CacheService.getFromCache({
+				userId: memberId,
+				overwrites,
+				bannerOptions,
 			});
-
-			const cachedWidget = await redisClient.get(relatedCacheKeys[0]);
-			if (cachedWidget) {
+			if (cachedBanner) {
 				res.setHeader('Content-Type', 'image/svg+xml');
 				res.setHeader('Cache-Control', cacheHeader);
-				return res.status(200).send(cachedWidget);
+				return res.status(200).send(cachedBanner);
 			}
 
 			return renderBanner(res, {
 				memberId,
 				overwrites,
 				cacheHeader,
-				bannerParams,
+				bannerOptions,
 			});
 		},
 	);

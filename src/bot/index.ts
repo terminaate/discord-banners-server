@@ -1,7 +1,6 @@
 import { Client, GatewayIntentBits } from 'discord.js';
 import { updateBanner } from '@/banner/updateBanner';
-import { scanCacheKeys } from '@/utils/scanCacheKeys';
-import { getDataFromCacheKey } from '@/utils/getDataFromCacheKey';
+import { CacheService } from '@/services/CacheService';
 
 export const discordClient = new Client({
 	intents: [
@@ -25,18 +24,18 @@ export const startBot = async () => {
 			return;
 		}
 
-		const relatedCacheKeys = await scanCacheKeys((candidate) => {
-			return candidate.includes(user.id);
-		});
-		const cacheKey = relatedCacheKeys[0];
+		const cacheData = await CacheService.getCacheData({
+			userId: user.id
+		})
 
-		const { overwrites, bannerParams } = getDataFromCacheKey(cacheKey);
+		const overwrites = cacheData?.overwrites;
+		const bannerOptions = cacheData?.bannerOptions;
 
 		void updateBanner(
 			member,
 			member.presence?.activities,
 			overwrites,
-			bannerParams,
+			bannerOptions,
 		);
 	});
 
@@ -45,18 +44,18 @@ export const startBot = async () => {
 			return;
 		}
 
-		const relatedCacheKeys = await scanCacheKeys((candidate) => {
-			return candidate.includes(presence.member!.id);
-		});
-		const cacheKey = relatedCacheKeys[0];
+		const cacheData = await CacheService.getCacheData({
+			userId: presence.member.id
+		})
 
-		const { overwrites, bannerParams } = getDataFromCacheKey(cacheKey);
+		const overwrites = cacheData?.overwrites;
+		const bannerOptions = cacheData?.bannerOptions;
 
 		void updateBanner(
 			presence.member,
 			presence.activities,
 			overwrites,
-			bannerParams,
+			bannerOptions,
 		);
 	});
 

@@ -1,19 +1,13 @@
 import { Activity, ActivityType, GuildMember } from 'discord.js';
 import { UserDTO } from '@/dto/user.dto';
-import { redisClient } from '@/redis';
-import { getCacheKey } from '@/utils/getCacheKey';
-import { scanCacheKeys } from '@/utils/scanCacheKeys';
 import { BannerOptions } from '@/types/BannerOptions';
 import { Banner } from '@/banner/Banner';
 import { UserActivityDTO } from '@/dto/user-activity.dto';
 import render from 'preact-render-to-string';
 import React from 'preact/compat';
+import { CacheService } from '@/services/CacheService';
 
 global.React = React;
-
-// TODO: not remove all cache keys, let's say max count of cache keys for each user  gonna be 3, so there's max 3 versions of banner, rollback date of banner and sort banners by date to  get latest banner's data to render on user changes
-
-// TODO: add abstraction for cache
 
 export const updateBanner = async (
 	member: GuildMember,
@@ -35,23 +29,15 @@ export const updateBanner = async (
 		/>,
 	);
 
-	// console.log(svg.length);
-
-	const cachedKey = await getCacheKey(
-		userDto.id,
-		userDto.username,
-		overwrites,
-		bannerOptions,
+	await CacheService.setInCache(
+		{
+			userId: userDto.id,
+			username: userDto.username,
+			bannerOptions,
+			overwrites,
+		},
+		svg,
 	);
-
-	const relativeCacheKeys = await scanCacheKeys((candidate) =>
-		candidate.includes(member.id),
-	);
-	for (const trashKey of relativeCacheKeys) {
-		await redisClient.del(trashKey);
-	}
-
-	await redisClient.set(cachedKey, svg);
 
 	return svg;
 };

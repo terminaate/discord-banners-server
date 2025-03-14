@@ -30,6 +30,8 @@ module.exports = {
 		'import/no-unresolved': 'off',
 		'@typescript-eslint/no-unsafe-declaration-merging': 'off',
 		'@typescript-eslint/no-empty-interface': 'off',
+		'no-unused-vars': 'off',
+		'no-useless-constructor': 0,
 	},
 	settings: {
 		'import/resolver': {
