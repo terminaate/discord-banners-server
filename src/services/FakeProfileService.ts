@@ -1,18 +1,19 @@
 import { fakeProfileApi } from '@/services/fakeProfileApi';
 import { FakeProfileData } from '@/types/FakeProfileData';
 import { UserDTO } from '@/dto/user.dto';
+import * as cacheManager from 'cache-manager';
 
 export class FakeProfileService {
-	private static cache = new Map<
-		string,
-		Partial<Record<keyof UserDTO, string>>
-	>();
+	// TODO: add cache invalidation, add cache time of life - 5 mins
+
+	private static cache = cacheManager.createCache({ ttl: 5 * 60 * 1000 });
 
 	public static async getUserById(
 		userId: string,
 	): Promise<Partial<Record<keyof UserDTO, string>>> {
-		if (this.cache.has(userId)) {
-			return this.cache.get(userId)!;
+		const candidate = await this.cache.get(userId);
+		if (candidate) {
+			return candidate;
 		}
 
 		try {
@@ -46,7 +47,7 @@ export class FakeProfileService {
 				res.avatarDecoration = fakeProfileData.decoration.asset;
 			}
 
-			this.cache.set(userId, res);
+			await this.cache.set(userId, res);
 
 			return res;
 		} catch (e) {
