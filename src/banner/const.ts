@@ -1,7 +1,6 @@
 import { ActivityType, PresenceStatus } from 'discord.js';
 import path from 'path';
 import { BannerDynamicHeight } from '@/types/BannerDynamicHeight';
-import { registerFont } from 'canvas';
 
 export const StatusColors: Record<PresenceStatus, string> = {
 	online: '#3BA55D',
@@ -12,16 +11,6 @@ export const StatusColors: Record<PresenceStatus, string> = {
 };
 
 export const AssetsPath = path.resolve(__dirname, '../../assets/');
-
-registerFont(path.resolve(AssetsPath, 'fonts/ABCGintoNormal.otf'), {
-	family: 'ABCGintoNormal',
-	style: 'normal',
-	weight: '700',
-});
-registerFont(path.resolve(AssetsPath, 'fonts/Whitney.otf'), {
-	family: 'Whitney',
-	style: 'normal',
-});
 
 export const PublicFlagsImages: Record<number, string> = {
 	64: '/icons/HypeSquad_Bravery.svg',

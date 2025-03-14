@@ -127,14 +127,14 @@ export const startServer = async () => {
 				(p) => p !== undefined,
 			);
 
-			if (process.env.NODE_ENV === 'dev') {
-				return renderBanner(res, {
-					memberId,
-					overwrites,
-					cacheHeader,
-					bannerParams,
-				});
-			}
+			// if (process.env.NODE_ENV === 'dev') {
+			// 	return renderBanner(res, {
+			// 		memberId,
+			// 		overwrites,
+			// 		cacheHeader,
+			// 		bannerParams,
+			// 	});
+			// }
 
 			const relatedCacheKeys = await scanCacheKeys((candidate) => {
 				const {
@@ -156,9 +156,9 @@ export const startServer = async () => {
 					return isSameUser && isSameOverwrites;
 				} else if (isBannerParams) {
 					return isSameUser && isSameBannerParams;
-				} else {
+				} 
 					return isSameUser;
-				}
+				
 			});
 
 			const cachedWidget = await redisClient.get(relatedCacheKeys[0]);
