@@ -1,5 +1,6 @@
 import { BannerProps } from './Banner';
 import {
+	BANNER_COMPACT_WIDTH,
 	BANNER_DEFAULT_HEIGHT,
 	BANNER_DEFAULT_WIDTH,
 	BannerDynamicHeights,
@@ -37,6 +38,10 @@ export const BannerContextProvider: FC<PropsWithChildren<BannerProps>> = ({
 		context.heightScale = dynamicHeight.height / BANNER_DEFAULT_HEIGHT;
 		context.height = dynamicHeight.height;
 		context.separator = !!dynamicHeight.separator;
+	}
+
+	if (context.bannerOptions?.compact) {
+		context.width = BANNER_COMPACT_WIDTH;
 	}
 
 	return (

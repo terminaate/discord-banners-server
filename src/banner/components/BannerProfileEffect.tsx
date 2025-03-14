@@ -14,6 +14,7 @@ export const BannerProfileEffect = () => {
 	}
 
 	const animated = !!bannerOptions?.animated;
+	const compact = !!bannerOptions?.compact;
 
 	const profileEffectObject =
 		ProfileEffectsService.getProfileEffectById(profileEffect);
@@ -30,7 +31,7 @@ export const BannerProfileEffect = () => {
 	const naturalHeight = effect.height;
 
 	const x = 0;
-	const y = (height - naturalHeight) / 2;
+	const y = compact ? 0 : (height - naturalHeight) / 2;
 
 	const scaleX = width / naturalWidth;
 
