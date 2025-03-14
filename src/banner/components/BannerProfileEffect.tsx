@@ -14,7 +14,6 @@ export const BannerProfileEffect = () => {
 	}
 
 	const animated = !!bannerOptions?.animated;
-	console.log('animated', animated);
 
 	const profileEffectObject =
 		ProfileEffectsService.getProfileEffectById(profileEffect);
