@@ -103,6 +103,77 @@ export const startServer = async () => {
 	});
 
 	app.get(
+		'/test-performance-banner/:memberId',
+		query('cache').optional().default(true).isBoolean().toBoolean(),
+		query('animated').optional().default(true).isBoolean().toBoolean(),
+		query('compact').optional().default(false).isBoolean().toBoolean(),
+		query('fakeProfile').optional().default(false).isBoolean().toBoolean(),
+		query('profileEffect').optional().custom(validateProfileEffect),
+		query('decoration').optional().custom(validateDecoration),
+		async (req: BannerRequest, res: Response) => {
+			const validationErrors = validationResult(req);
+			if (!validationErrors.isEmpty()) {
+				return res.json({ errors: validationErrors.array() });
+			}
+
+			const {
+				profileEffect,
+				decoration,
+				compact = false,
+				animated = true,
+				fakeProfile = false,
+			} = req.query;
+			const { memberId } = req.params;
+
+			const member = await getMemberByIdOrUsername(memberId);
+			if (!member) {
+				return res.status(404).send('User not found');
+			}
+
+			const bannerOptions: BannerOptions = {
+				compact,
+				animated,
+			};
+
+			const overwrites: Partial<Record<keyof UserDTO, string>> = pickBy(
+				{
+					profileEffect,
+					avatarDecoration: decoration,
+				},
+				(p) => p !== undefined,
+			);
+			if (fakeProfile) {
+				const realUserId = await getMemberId(memberId);
+				const fakeProfileData =
+					await FakeProfileService.getUserById(realUserId);
+
+				Object.assign(overwrites, fakeProfileData);
+			}
+
+			const results: Record<string, number> = {};
+
+			for (let i = 0; i < 100; i++) {
+				const startDate = Date.now();
+				await renderBanner(
+					member,
+					member.presence?.activities,
+					overwrites,
+					bannerOptions,
+				);
+				const endDate = Date.now();
+
+				results[i] = endDate - startDate;
+			}
+
+			const averageTime =
+				Object.values(results).reduce((acc, curr) => acc + curr, 0) /
+				Object.values(results).length;
+
+			res.json({ averageTime, results });
+		},
+	);
+
+	app.get(
 		'/banner/:memberId',
 		query('cache').optional().default(true).isBoolean().toBoolean(),
 		query('animated').optional().default(true).isBoolean().toBoolean(),

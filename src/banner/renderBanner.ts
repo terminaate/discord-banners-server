@@ -17,7 +17,7 @@ export const renderBanner = async (
 	const activity = activities?.find((o) => o.type !== ActivityType.Custom);
 	const activityDto = activity ? new UserActivityDTO(activity) : undefined;
 
-	const userDto = await UserDTO.create(member);
+	const userDto = new UserDTO(member);
 	Object.assign(userDto, overwrites);
 
 	const bannerInstance = await Banner.create(

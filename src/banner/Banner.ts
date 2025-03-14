@@ -1,4 +1,4 @@
-import { CanvasRenderingContext2D, loadImage } from 'canvas';
+import { CanvasRenderingContext2D } from 'canvas';
 import { UserDTO } from '@/dto/user.dto';
 import { BorderRadius } from '@/types/BorderRadius';
 import { UserActivityDTO } from '@/dto/user-activity.dto';
@@ -15,8 +15,7 @@ import {
 } from '@/banner/const';
 import { BaseCanvas } from '@/banner/BaseCanvas';
 import path from 'path';
-import sharp from 'sharp';
-import { loadImageBuffer } from '@/utils/loadImageBuffer';
+import { loadImageBase64 } from '@/utils/loadImageBase64';
 import { createImageFromBuffer } from '@/utils/createImageFromBuffer';
 import { AvatarDecorationsService } from '@/services/AvatarDecorationsService';
 import { ProfileEffectsService } from '@/services/ProfileEffectsService';
@@ -142,7 +141,9 @@ class BannerBackground extends BaseBannerEntity {
 		const borderRadius = this.canvas.borderRadius;
 
 		if (userBannerURL) {
-			const backgroundImage = await loadImage(userBannerURL);
+			const backgroundImage = await createImageFromBuffer(
+				await loadImageBase64(userBannerURL),
+			);
 
 			this.canvas.ctx.save();
 
@@ -230,7 +231,9 @@ class BannerProfileEffect extends BaseBannerEntity {
 			? profileEffectObject.config.effects[0].src
 			: profileEffectObject.config.reducedMotionSrc;
 
-		const profileEffectImage = await loadImage(profileEffectURL);
+		const profileEffectImage = await createImageFromBuffer(
+			await loadImageBase64(profileEffectURL),
+		);
 
 		this.canvas.ctx.save();
 
@@ -289,7 +292,9 @@ class BannerAvatar extends BaseBannerEntity {
 		const ctx = this.canvas.ctx;
 
 		// TODO: refactor
-		const avatarImage = await loadImage(user.avatar);
+		const avatarImage = await createImageFromBuffer(
+			await loadImageBase64(user.avatar),
+		);
 
 		// this.canvas.roundImage({
 		// 	x: this.x,
@@ -331,7 +336,9 @@ class BannerAvatar extends BaseBannerEntity {
 			return;
 		}
 
-		const decorationImage = await loadImage(decorationURL);
+		const decorationImage = await createImageFromBuffer(
+			await loadImageBase64(decorationURL),
+		);
 
 		// TODO: move most of this logic to separated function in BaseCanvas
 		this.canvas.ctx.save();
@@ -449,7 +456,9 @@ class BannerPublicFlags extends BaseBannerEntity {
 			return;
 		}
 
-		const hypesquadImage = await loadImage(PublicFlagsImages[publicFlags]);
+		const hypesquadImage = await createImageFromBuffer(
+			await loadImageBase64(PublicFlagsImages[publicFlags], true),
+		);
 
 		this.canvas.ctx.drawImage(
 			hypesquadImage,
@@ -479,8 +488,8 @@ class BannerNitro extends BaseBannerEntity {
 			return;
 		}
 
-		const nitroImage = await loadImage(
-			path.resolve(AssetsPath, 'icons/nitro.svg'),
+		const nitroImage = await createImageFromBuffer(
+			await loadImageBase64(path.resolve(AssetsPath, 'icons/nitro.svg'), true),
 		);
 
 		this.canvas.ctx.drawImage(
@@ -553,27 +562,9 @@ class BannerActivity extends BaseBannerEntity {
 
 		const activityImageURL = activity.largeImageURL ?? defaultActivityImage;
 
-		if (activity.largeImageURL) {
-			const response = await loadImageBuffer(activityImageURL);
+		const response = await loadImageBase64(activityImageURL);
 
-			const activityImage = await createImageFromBuffer(
-				await sharp(response)
-					.resize(this.activityImageWidth, this.activityImageHeight)
-					.toBuffer(),
-			);
-
-			this.canvas.ctx.drawImage(
-				activityImage,
-				this.x,
-				this.activityImageY * this.canvas.heightScale,
-				this.activityImageWidth,
-				this.activityImageHeight,
-			);
-
-			return;
-		}
-
-		const activityImage = await loadImage(activityImageURL);
+		const activityImage = await createImageFromBuffer(response);
 
 		this.canvas.ctx.drawImage(
 			activityImage,

@@ -32,15 +32,4 @@ export class UserDTO {
 			(activity) => activity.type === ActivityType.Custom,
 		)?.state;
 	}
-
-	static async create(member: GuildMember) {
-		const user = await member.client.users.fetch(member, { force: true });
-
-		const dto = new UserDTO(member);
-
-		dto.accentColor = user.hexAccentColor ?? '#fff';
-		dto.banner = member.user.bannerURL({ size: 1024, extension: 'png' });
-
-		return dto;
-	}
 }
