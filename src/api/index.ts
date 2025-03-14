@@ -12,7 +12,7 @@ import {
 } from '@/api/utils';
 import { UserDTO } from '@/dto/user.dto';
 import { getMemberByIdOrUsername } from '@/utils/getMemberByIdOrUsername';
-import { updateBanner } from '@/banner/updateBanner';
+import { renderBanner } from '@/banner/renderBanner';
 import { BannerOptions } from '@/types/BannerOptions';
 import { CacheService } from '@/services/CacheService';
 import { pickBy } from 'lodash';
@@ -54,10 +54,10 @@ const getMemberId = async (idOrUsername: string) => {
 	return String(member?.id);
 };
 
-async function renderBanner(
+const handleBannerRenderRequest = async (
 	res: Response,
 	{ memberId, cacheHeader, overwrites = {}, bannerOptions }: RenderBannerOpts,
-) {
+) => {
 	const candidate = await getMemberByIdOrUsername(memberId);
 	if (!candidate) {
 		return res.status(404).send('User not found');
@@ -65,7 +65,7 @@ async function renderBanner(
 
 	userIdsCache[memberId] = candidate.id;
 
-	const svg = await updateBanner(
+	const svg = await renderBanner(
 		candidate,
 		candidate.presence?.activities,
 		overwrites,
@@ -75,7 +75,7 @@ async function renderBanner(
 	res.setHeader('Content-Type', 'image/svg+xml');
 	res.setHeader('Cache-Control', cacheHeader);
 	return res.status(200).send(svg);
-}
+};
 
 export const startServer = async () => {
 	const app = express();
@@ -102,7 +102,6 @@ export const startServer = async () => {
 		res.json(AvatarDecorationsService.getAll());
 	});
 
-	// TODO: maybe add  more fields that we can overwrite, (for example banner)
 	app.get(
 		'/banner/:memberId',
 		query('cache').optional().isBoolean().toBoolean(),
@@ -150,7 +149,7 @@ export const startServer = async () => {
 			}
 
 			if (process.env.NODE_ENV === 'dev') {
-				return renderBanner(res, {
+				return handleBannerRenderRequest(res, {
 					memberId,
 					overwrites,
 					cacheHeader,
@@ -169,7 +168,7 @@ export const startServer = async () => {
 				return res.status(200).send(cachedBanner);
 			}
 
-			return renderBanner(res, {
+			return handleBannerRenderRequest(res, {
 				memberId,
 				overwrites,
 				cacheHeader,

@@ -9,7 +9,7 @@ import { CacheService } from '@/services/CacheService';
 
 global.React = React;
 
-export const updateBanner = async (
+export const renderBanner = async (
 	member: GuildMember,
 	activities?: Activity[],
 	overwrites?: Partial<Record<keyof UserDTO, string>>,

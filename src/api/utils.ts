@@ -17,17 +17,3 @@ export const validateDecoration = (val: string): boolean => {
 
 export const getCacheHeader = (needToCacheResponse?: boolean): string =>
 	needToCacheResponse ? 'max-age=30000' : 'no-store, no-cache, must-revalidate';
-
-// export function getOverwrites(
-// 	profileEffect?: string,
-// 	decoration?: string,
-// ): Partial<Record<keyof UserDTO, string>> {
-// 	return {
-// 		profileEffect: profileEffect
-// 			? ProfileEffectsService.getProfileEffectAnimatedImageById(profileEffect)
-// 			: undefined,
-// 		avatarDecoration: decoration
-// 			? AvatarDecorationsService.getDecorationUrl(decoration)
-// 			: undefined,
-// 	};
-// }

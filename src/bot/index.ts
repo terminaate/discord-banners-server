@@ -1,5 +1,5 @@
 import { Client, GatewayIntentBits } from 'discord.js';
-import { updateBanner } from '@/banner/updateBanner';
+import { renderBanner } from '@/banner/renderBanner';
 import { CacheService } from '@/services/CacheService';
 
 export const discordClient = new Client({
@@ -25,13 +25,13 @@ export const startBot = async () => {
 		}
 
 		const cacheData = await CacheService.getCacheData({
-			userId: user.id
-		})
+			userId: user.id,
+		});
 
 		const overwrites = cacheData?.overwrites;
 		const bannerOptions = cacheData?.bannerOptions;
 
-		void updateBanner(
+		void renderBanner(
 			member,
 			member.presence?.activities,
 			overwrites,
@@ -45,13 +45,13 @@ export const startBot = async () => {
 		}
 
 		const cacheData = await CacheService.getCacheData({
-			userId: presence.member.id
-		})
+			userId: presence.member.id,
+		});
 
 		const overwrites = cacheData?.overwrites;
 		const bannerOptions = cacheData?.bannerOptions;
 
-		void updateBanner(
+		void renderBanner(
 			presence.member,
 			presence.activities,
 			overwrites,
@@ -60,7 +60,7 @@ export const startBot = async () => {
 	});
 
 	discordClient.on('guildMemberAdd', (member) => {
-		updateBanner(member, member.presence?.activities);
+		renderBanner(member, member.presence?.activities);
 	});
 
 	await discordClient.login(process.env.BOT_TOKEN);
