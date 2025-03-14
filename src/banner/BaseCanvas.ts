@@ -6,7 +6,7 @@ type RoundRectOpts = {
 	y: number;
 	width: number;
 	height: number;
-	radius?: BorderRadius;
+	radius: BorderRadius;
 	fill?: boolean;
 	stroke?: boolean;
 	relativeToHeight?: boolean;
@@ -18,7 +18,7 @@ type RoundImageOpts = {
 	y: number;
 	width?: number;
 	height?: number;
-	radius?: BorderRadius;
+	radius: BorderRadius;
 	relativeToHeight?: boolean;
 };
 
@@ -85,24 +85,18 @@ export class BaseCanvas extends Canvas {
 			y = y * this.heightScale;
 		}
 
+		const radiusObject = this.getBorderRadiusObject(radius);
+
 		this.ctx.save();
 
 		width ??= image.width;
 		height ??= image.height;
 
 		this.ctx.beginPath();
-		this.roundRect({
-			x,
-			y,
-			radius,
-			width,
-			height,
-			fill: false,
-			stroke: false,
-		});
+		this.ctx.roundRect(x, y, width, height, Object.values(radiusObject));
 		this.ctx.closePath();
 		this.ctx.clip();
-		this.ctx.drawImage(image, 0, 0, width, height);
+		this.ctx.drawImage(image, x, y, width, height);
 
 		this.ctx.restore();
 	}

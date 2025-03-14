@@ -53,21 +53,21 @@ export const BannerDynamicHeights: BannerDynamicHeight[] = [
 	{
 		condition(user, activity) {
 			const { customStatus } = user;
-			return typeof customStatus === 'string' && activity === undefined;
+			return !!customStatus && !activity;
 		},
 		height: 330,
 	},
 	{
 		condition(user, activity) {
 			const { customStatus } = user;
-			return !customStatus && activity === undefined;
+			return !customStatus && !activity;
 		},
 		height: 320,
 	},
 	{
 		condition(user, activity) {
 			const { customStatus } = user;
-			return !customStatus && activity !== undefined;
+			return !customStatus && !!activity;
 		},
 		height: 421,
 		separator: true,

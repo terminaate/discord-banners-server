@@ -61,6 +61,19 @@ export class Banner {
 
 		const { canvas, separator } = new Banner(userData, bannerOptions);
 
+		// Rounding corners
+		canvas.roundRect({
+			x: 0,
+			y: 0,
+			width: canvas.width,
+			height: canvas.height,
+			radius: canvas.borderRadius,
+			fill: false,
+			stroke: false,
+			relativeToHeight: false,
+		});
+		canvas.ctx.clip();
+
 		const layers: (BaseBannerEntity | undefined)[] = [
 			new BannerBackground(canvas),
 			new BannerAvatar(canvas),
@@ -145,26 +158,17 @@ class BannerBackground extends BaseBannerEntity {
 				await loadImageBase64(userBannerURL),
 			);
 
+			const scaleX = this.width / backgroundImage.naturalWidth;
+
 			this.canvas.ctx.save();
 
-			this.canvas.ctx.translate(
+			this.canvas.ctx.scale(scaleX, scaleX);
+
+			this.canvas.ctx.drawImage(
+				backgroundImage,
 				this.x,
-				-(this.canvas.height - backgroundImage.naturalHeight) / 2,
+				(this.height - backgroundImage.naturalHeight) / 2,
 			);
-			const x = this.width / backgroundImage.naturalWidth;
-
-			this.canvas.ctx.scale(x, x);
-
-			this.canvas.roundImage({
-				image: backgroundImage,
-				x: this.x,
-				y: this.y,
-				relativeToHeight: false,
-				radius: {
-					tl: borderRadius.tl,
-					tr: borderRadius.tr,
-				},
-			});
 
 			this.canvas.ctx.restore();
 		} else {
@@ -295,15 +299,6 @@ class BannerAvatar extends BaseBannerEntity {
 		const avatarImage = await createImageFromBuffer(
 			await loadImageBase64(user.avatar),
 		);
-
-		// this.canvas.roundImage({
-		// 	x: this.x,
-		// 	y: this.y,
-		// 	height: this.height,
-		// 	width: this.width,
-		// 	radius: this.radius,
-		// 	image: avatarImage,
-		// });
 
 		ctx.save();
 
@@ -501,8 +496,6 @@ class BannerNitro extends BaseBannerEntity {
 		);
 	}
 }
-
-// TODO: MOVE ALL COLORS TO BannerColors VARIABLE
 
 class BannerActivity extends BaseBannerEntity {
 	x = START_CONTENT_X;

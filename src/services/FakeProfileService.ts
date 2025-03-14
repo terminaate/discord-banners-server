@@ -4,8 +4,6 @@ import { UserDTO } from '@/dto/user.dto';
 import * as cacheManager from 'cache-manager';
 
 export class FakeProfileService {
-	// TODO: add cache invalidation, add cache time of life - 5 mins
-
 	private static cache = cacheManager.createCache({ ttl: 5 * 60 * 1000 });
 
 	public static async getUserById(
