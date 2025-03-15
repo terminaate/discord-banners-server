@@ -11,7 +11,7 @@ import {
 import { IsBooleanString, IsOptional, IsString } from 'class-validator';
 import { BannerOptions } from '@/banner/types/banner-options';
 import { UserDTO } from '@/common/dto/user.dto';
-import { pickBy } from 'lodash';
+import { pickBy, sum } from 'lodash';
 import { DiscordService } from '@/discord/discord.service';
 import { BannerService } from '@/banner/banner.service';
 import { ConfigService } from '@nestjs/config';
@@ -62,6 +62,65 @@ export class BannerController {
     private configService: ConfigService,
     private fakeProfileService: FakeProfileService,
   ) {}
+
+  @Get('/banner-benchmark/:memberId')
+  @HttpCode(HttpStatus.OK)
+  async getBannerBenchmark(
+    @Param() params: GetBannerParams,
+    @Query() query: GetBannerQuery,
+  ) {
+    const { memberId } = params;
+    const { overwrites, bannerOptions } = await this.getBannerDataFromRequest(
+      params,
+      query,
+    );
+    const { cache = false } = query;
+
+    const member = await this.discordService.getMemberByIdOrUsername(memberId);
+    if (!member) {
+      throw new NotFoundException();
+    }
+
+    const results: Record<string, number> = {};
+
+    for (let i = 0; i < 100; i++) {
+      const startDate = Date.now();
+
+      if (cache) {
+        const cachedBanner = await this.bannerCacheService.getBannerFromCache({
+          userId: memberId,
+          overwrites,
+          bannerOptions,
+        });
+
+        if (!cachedBanner) {
+          await this.bannerService.renderBanner(
+            member,
+            member.presence?.activities,
+            overwrites,
+            bannerOptions,
+          );
+        }
+      } else {
+        await this.bannerService.renderBanner(
+          member,
+          member.presence?.activities,
+          overwrites,
+          bannerOptions,
+        );
+      }
+
+      const endDate = Date.now();
+
+      results[i] = endDate - startDate;
+    }
+
+    const values = Object.values(results);
+
+    const averageTime = sum(values) / values.length;
+
+    return { averageTime, values };
+  }
 
   @Get('/banner/:memberId')
   @HttpCode(HttpStatus.OK)
