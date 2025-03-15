@@ -38,13 +38,13 @@ export const ActivitiesText: Partial<Record<ActivityType, string>> = {
 
 export const BannerColors = {
   DEFAULT_ACCENT_COLOR: '#fff',
-  INFO_COLOR: '#18191C',
+  INFO_BACKGROUND_COLOR: '#18191C',
   BASE_TEXT_COLOR: '#fff',
   SECOND_TEXT_COLOR: '#B9BBBE',
   THIRD_TEXT_COLOR: '#B2B2B4',
 };
 
-export const BANNER_DEFAULT_WIDTH = 961;
+export const BANNER_DEFAULT_WIDTH = 300;
 export const BANNER_COMPACT_WIDTH = 600;
 export const BANNER_DEFAULT_HEIGHT = 466;
 export const BANNER_START_CONTENT_X: MeasurementUnit = '27%';

@@ -299,6 +299,14 @@ export class BaseCanvas extends Canvas {
     return radiusObject;
   }
 
+  toPixelsX(value: number | `${number}%`) {
+    return this.toPixels(value, this.width);
+  }
+
+  toPixelsY(value: number | `${number}%`) {
+    return this.toPixels(value, this.height);
+  }
+
   private createImageFromBuffer(src: string | Buffer) {
     const image = new Image();
 
@@ -343,13 +351,5 @@ export class BaseCanvas extends Canvas {
     imagesCache.set(url, base64);
 
     return base64;
-  }
-
-  private toPixelsX(value: number | `${number}%`) {
-    return this.toPixels(value, this.width);
-  }
-
-  private toPixelsY(value: number | `${number}%`) {
-    return this.toPixels(value, this.height);
   }
 }
