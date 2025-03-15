@@ -86,7 +86,7 @@ export class BannerRenderService {
     const layers: (BaseBannerLayer | undefined)[] = [
       new BannerBackground(canvas),
       new BannerAvatar(canvas),
-      // new BannerStatus(canvas),
+      new BannerStatus(canvas),
       // new BannerUsername(canvas),
       // new BannerPublicFlags(canvas),
       // new BannerNitro(canvas),
@@ -216,7 +216,7 @@ class BannerProfileEffect extends BaseBannerLayer {
 
 class BannerAvatar extends BaseBannerLayer {
   x: MeasurementUnit = '18%';
-  y: MeasurementUnit = '29%';
+  y: MeasurementUnit = '26%';
 
   width: MeasurementUnit = '25%';
   height: MeasurementUnit = '50%';
@@ -233,15 +233,15 @@ class BannerAvatar extends BaseBannerLayer {
   async render({ user }: UserDataForCanvas): Promise<void> {
     this.drawBackground();
     await this.drawAvatar(user);
-    // await this.drawDecoration(user);
+    await this.drawDecoration(user);
   }
 
   private async drawAvatar(user: UserDTO) {
-    const reference = Math.min(
+    const size = Math.min(
       this.canvas.toPixelsX(this.width),
       this.canvas.toPixelsY(this.height),
     );
-    const radiusInPixels = this.canvas.toPixels(this.radius, reference);
+    const radiusInPixels = this.canvas.toPixels(this.radius, size);
 
     this.canvas.ctx.save();
 
@@ -255,42 +255,50 @@ class BannerAvatar extends BaseBannerLayer {
     this.canvas.ctx.clip();
     await this.canvas.drawImage({
       url: user.avatar,
-      x: this.canvas.toPixelsX(this.x) - reference / 2,
-      y: this.canvas.toPixelsY(this.y) - reference / 2,
-      width: reference,
-      height: reference,
+      x: this.canvas.toPixelsX(this.x) - size / 2,
+      y: this.canvas.toPixelsY(this.y) - size / 2,
+      width: size,
+      height: size,
     });
 
     this.canvas.ctx.restore();
   }
 
-  // private async drawDecoration(user: UserDTO) {
-  //   if (!user.avatarDecoration) {
-  //     return;
-  //   }
-  //
-  //   const decorationImage = await this.canvas.createImage(
-  //     user.avatarDecoration,
-  //   );
-  //
-  //   this.canvas.ctx.save();
-  //
-  //   this.canvas.ctx.translate(this.decorationX, this.decorationY);
-  //   this.canvas.ctx.scale(
-  //     this.decorationWidth / decorationImage.naturalWidth,
-  //     this.decorationHeight / decorationImage.naturalHeight,
-  //   );
-  //   this.canvas.ctx.drawImage(decorationImage, 0, 0);
-  //
-  //   this.canvas.ctx.restore();
-  // }
+  private async drawDecoration(user: UserDTO) {
+    if (!user.avatarDecoration) {
+      return;
+    }
 
-  private drawBackground() {
-    const reference = Math.min(
+    const size = Math.min(
       this.canvas.toPixelsX(this.backgroundWidth),
       this.canvas.toPixelsY(this.backgroundHeight),
     );
-    const radius = this.canvas.toPixels(this.backgroundRadius, reference);
+
+    this.canvas.ctx.save();
+
+    this.canvas.ctx.translate(
+      this.canvas.toPixelsX(this.x) - size / 2,
+      this.canvas.toPixelsY(this.y) - size / 2,
+    );
+    await this.canvas.drawImage({
+      x: 0,
+      y: 0,
+      url: user.avatarDecoration,
+      scale: (img) => ({
+        scaleX: size / img.naturalWidth,
+        scaleY: size / img.naturalHeight,
+      }),
+    });
+
+    this.canvas.ctx.restore();
+  }
+
+  private drawBackground() {
+    const size = Math.min(
+      this.canvas.toPixelsX(this.backgroundWidth),
+      this.canvas.toPixelsY(this.backgroundHeight),
+    );
+    const radius = this.canvas.toPixels(this.backgroundRadius, size);
 
     this.canvas.fillStyle = BannerColors.INFO_BACKGROUND_COLOR;
     this.canvas.fillCircle({
@@ -303,14 +311,14 @@ class BannerAvatar extends BaseBannerLayer {
 }
 
 class BannerStatus extends BaseBannerLayer {
-  x = 206.5;
-  y = 270.5;
+  x: MeasurementUnit = '27%';
+  y: MeasurementUnit = '32%';
 
   width?: number;
   height?: number;
 
-  backgroundRadius = 27.5;
-  radius = 17.5;
+  backgroundRadius = 15;
+  radius = 10;
 
   constructor(private canvas: BaseCanvas) {
     super();

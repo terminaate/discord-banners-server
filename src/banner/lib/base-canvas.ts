@@ -28,8 +28,9 @@ type RoundImageOpts = Coords & {
 };
 
 type DrawImageOpts = Coords & {
-  url: string;
+  url?: string;
   local?: boolean;
+  image?: Image;
   scale?: (image: Image) => {
     scaleX?: number;
     scaleY?: number;
@@ -137,6 +138,7 @@ export class BaseCanvas extends Canvas {
     width,
     height,
     url,
+    image: originalImage,
     local = false,
     scale,
   }: DrawImageOpts) {
@@ -149,7 +151,7 @@ export class BaseCanvas extends Canvas {
       height = this.toPixelsY(height);
     }
 
-    const image = await this.createImage(url, local);
+    const image = originalImage ?? (await this.createImage(url!, local));
 
     width ??= image.naturalWidth;
     height ??= image.naturalHeight;
@@ -282,7 +284,7 @@ export class BaseCanvas extends Canvas {
       return (parseFloat(value) / 100) * max;
     }
 
-    return typeof value === 'number' ? value : parseInt(value);
+    return typeof value === 'number' ? value : parseFloat(value);
   }
 
   getBorderRadiusObject(radius: BorderRadius): Required<BorderRadiusObject> {
