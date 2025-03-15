@@ -7,10 +7,12 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { createKeyv } from '@keyv/redis';
 import { DiscordModule } from '@/discord/discord.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { FakeProfileModule } from '@/fake-profile/fake-profile.module';
 
 @Module({
   imports: [
     DiscordModule,
+    FakeProfileModule,
     CacheModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

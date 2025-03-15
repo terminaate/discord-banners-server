@@ -33,8 +33,6 @@ export class BannerService {
 
     const svg = canvas.toBuffer().toString();
 
-    console.log('just rendered baner');
-
     await this.cacheService.setBannerInCache(
       {
         userId: userDto.id,

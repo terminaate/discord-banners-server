@@ -8,18 +8,19 @@ import {
   BANNER_DEFAULT_WIDTH,
   BANNER_START_CONTENT_X,
   BannerColors,
+  BannerDynamicHeights,
   PublicFlagsImages,
   StatusColors,
 } from '@/banner/const';
 import { BannerOptions } from '@/banner/types/banner-options';
 import { BaseCanvas } from '@/banner/lib/base-canvas';
-// import { ProfileEffectsService } from '@/services/ProfileEffectsService';
 import { UserDTO } from '@/common/dto/user.dto';
-// import { AvatarDecorationsService } from '@/services/AvatarDecorationsService';
 import { UserActivityDTO } from '@/common/dto/user-activity.dto';
 import { BaseBannerEntity } from '@/banner/lib/base-banner-entity';
 import { UserDataForCanvas } from '@/banner/types/user-data-for-canvas';
 import { BorderRadius } from '@/banner/types/border-radius';
+import { ProfileEffectsService } from '@/fake-profile/profile-effects.service';
+import { AvatarDecorationsService } from '@/fake-profile/avatar-decorations.service';
 
 @Injectable()
 export class BannerRenderService {
@@ -27,7 +28,10 @@ export class BannerRenderService {
   private readonly height = BANNER_DEFAULT_HEIGHT;
   private readonly borderRadius: BorderRadius = 14;
 
-  constructor() {
+  constructor(
+    private profileEffectsService: ProfileEffectsService,
+    private avatarDecorationsService: AvatarDecorationsService,
+  ) {
     registerFont(path.resolve(AssetsPath, 'fonts/ABCGintoNormal.otf'), {
       family: 'ABCGintoNormal',
       style: 'normal',
@@ -44,17 +48,25 @@ export class BannerRenderService {
     activity?: UserActivityDTO,
     bannerOptions?: BannerOptions,
   ) {
+    if (user.profileEffect) {
+      user.profileEffect = this.profileEffectsService.getProfileEffectURL(
+        user.profileEffect,
+        bannerOptions?.animated,
+      );
+    }
+
+    if (user.avatarDecoration) {
+      user.avatarDecoration = this.avatarDecorationsService.getDecorationUrl(
+        user.avatarDecoration,
+        bannerOptions?.animated,
+      );
+    }
+
     const userData: UserDataForCanvas = { user, activity };
+    const { height, heightScale, separator } = this.calculateHeight(userData);
 
-    // TODO: add calculating height
-
-    const canvas = new BaseCanvas(
-      this.width,
-      this.height,
-      this.borderRadius,
-      'svg',
-    );
-    const separator = false;
+    const canvas = new BaseCanvas(this.width, height, this.borderRadius, 'svg');
+    canvas.heightScale = heightScale;
 
     const layers: (BaseBannerEntity | undefined)[] = [
       new BannerBackground(canvas),
@@ -76,7 +88,21 @@ export class BannerRenderService {
     return canvas;
   }
 
-  private calculateHeight() {}
+  private calculateHeight({ user, activity }: UserDataForCanvas) {
+    const heightCandidate = BannerDynamicHeights.find((o) =>
+      o.condition(user, activity),
+    );
+    let height = BANNER_DEFAULT_HEIGHT;
+
+    let separator = true;
+
+    if (heightCandidate) {
+      height = heightCandidate.height;
+      separator = Boolean(heightCandidate.separator);
+    }
+
+    return { heightScale: height / BANNER_DEFAULT_HEIGHT, height, separator };
+  }
 }
 
 class BannerBackground extends BaseBannerEntity {
@@ -165,39 +191,30 @@ class BannerProfileEffect extends BaseBannerEntity {
       return;
     }
 
-    // const profileEffectObject = ProfileEffectsService.getProfileEffectById(
-    //   user.profileEffect,
-    // );
-    // if (!profileEffectObject) {
-    //   return;
-    // }
-    //
-    // const profileEffectURL = bannerOptions?.animated
-    //   ? profileEffectObject.config.effects[0].src
-    //   : profileEffectObject.config.reducedMotionSrc;
-    //
-    // const profileEffectImage = await this.canvas.createImage(profileEffectURL);
-    //
-    // this.canvas.ctx.save();
-    //
-    // this.canvas.ctx.translate(
-    //   this.x,
-    //   bannerOptions?.compact
-    //     ? 0
-    //     : (this.canvas.height - profileEffectImage.naturalHeight) / 2,
-    // );
-    //
-    // const x = this.width / profileEffectImage.naturalWidth;
-    //
-    // this.canvas.ctx.scale(x, x);
-    // this.canvas.roundImage({
-    //   x: 0,
-    //   y: 0,
-    //   image: profileEffectImage,
-    //   radius: this.canvas.borderRadius,
-    // });
-    //
-    // this.canvas.ctx.restore();
+    const profileEffectImage = await this.canvas.createImage(
+      user.profileEffect,
+    );
+
+    this.canvas.ctx.save();
+
+    this.canvas.ctx.translate(
+      this.x,
+      bannerOptions?.compact
+        ? 0
+        : (this.canvas.height - profileEffectImage.naturalHeight) / 2,
+    );
+
+    const x = this.width / profileEffectImage.naturalWidth;
+
+    this.canvas.ctx.scale(x, x);
+    this.canvas.roundImage({
+      x: 0,
+      y: 0,
+      image: profileEffectImage,
+      radius: this.canvas.borderRadius,
+    });
+
+    this.canvas.ctx.restore();
   }
 }
 
@@ -222,13 +239,10 @@ class BannerAvatar extends BaseBannerEntity {
     super();
   }
 
-  async render(
-    { user }: UserDataForCanvas,
-    bannerOptions?: BannerOptions,
-  ): Promise<void> {
+  async render({ user }: UserDataForCanvas): Promise<void> {
     this.drawBackground();
     await this.drawAvatar(user);
-    await this.drawDecoration(user, bannerOptions);
+    await this.drawDecoration(user);
   }
 
   private async drawAvatar(user: UserDTO) {
@@ -255,32 +269,25 @@ class BannerAvatar extends BaseBannerEntity {
     ctx.restore();
   }
 
-  private async drawDecoration(user: UserDTO, bannerOptions?: BannerOptions) {
+  private async drawDecoration(user: UserDTO) {
     if (!user.avatarDecoration) {
       return;
     }
 
-    // const decorationURL = AvatarDecorationsService.getDecorationUrl(
-    //   user.avatarDecoration,
-    //   bannerOptions?.animated,
-    // );
-    // if (!decorationURL) {
-    //   return;
-    // }
-    //
-    // const decorationImage = await this.canvas.createImage(decorationURL);
-    //
-    // // TODO: move most of this logic to separated function in BaseCanvas
-    // this.canvas.ctx.save();
-    //
-    // this.canvas.ctx.translate(this.decorationX, this.decorationY);
-    // this.canvas.ctx.scale(
-    //   this.decorationWidth / decorationImage.naturalWidth,
-    //   this.decorationHeight / decorationImage.naturalHeight,
-    // );
-    // this.canvas.ctx.drawImage(decorationImage, 0, 0);
-    //
-    // this.canvas.ctx.restore();
+    const decorationImage = await this.canvas.createImage(
+      user.avatarDecoration,
+    );
+
+    this.canvas.ctx.save();
+
+    this.canvas.ctx.translate(this.decorationX, this.decorationY);
+    this.canvas.ctx.scale(
+      this.decorationWidth / decorationImage.naturalWidth,
+      this.decorationHeight / decorationImage.naturalHeight,
+    );
+    this.canvas.ctx.drawImage(decorationImage, 0, 0);
+
+    this.canvas.ctx.restore();
   }
 
   private drawBackground() {

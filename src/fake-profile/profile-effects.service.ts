@@ -16,6 +16,17 @@ export class ProfileEffectsService {
     return this.profileEffects;
   }
 
+  getProfileEffectURL(effect: string, animated = true) {
+    const profileEffectObject = this.getProfileEffectById(effect);
+    if (!profileEffectObject) {
+      return;
+    }
+
+    return animated
+      ? profileEffectObject.config.effects[0].src
+      : profileEffectObject.config.reducedMotionSrc;
+  }
+
   getProfileEffectById(id: string) {
     return this.profileEffects[id];
   }

@@ -57,13 +57,14 @@ const mimeTypeMap: { [key: string]: string } = {
   svg: 'image/svg+xml',
 };
 
+// TODO: turn it to cache-manager instance with ttl
+const imagesCache = new Map<string, string>();
+
+// TODO: maybe move this to separated module?
 export class BaseCanvas extends Canvas {
   ctx: CanvasRenderingContext2D;
   heightScale: number;
   borderRadius: Required<BorderRadiusObject>;
-
-  // TODO: maybe use here cache-manager for images invalidation with ttl
-  private imagesCache = new Map<string, string>();
 
   constructor(
     width: number,
@@ -213,9 +214,8 @@ export class BaseCanvas extends Canvas {
   }
 
   private async loadImageBase64(url: string, local = false) {
-    if (this.imagesCache.has(url)) {
-      console.log(`getting image from cache, ${url}`);
-      return this.imagesCache.get(url) as string;
+    if (imagesCache.has(url)) {
+      return imagesCache.get(url) as string;
     }
 
     let base64: string;
@@ -243,7 +243,7 @@ export class BaseCanvas extends Canvas {
       base64 = `data:${contentType};base64,${data.toString('base64')}`;
     }
 
-    this.imagesCache.set(url, base64);
+    imagesCache.set(url, base64);
 
     return base64;
   }
