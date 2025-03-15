@@ -17,6 +17,7 @@ import { BannerService } from '@/banner/banner.service';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { BannerCacheService } from '@/banner/banner-cache.service';
+import { FakeProfileService } from '@/fake-profile/fake-profile.service';
 
 class GetBannerParams {
   @IsString()
@@ -51,6 +52,7 @@ class GetBannerQuery {
   decoration?: string;
 }
 
+// TODO: improve
 @Controller()
 export class BannerController {
   constructor(
@@ -58,6 +60,7 @@ export class BannerController {
     private bannerService: BannerService,
     private bannerCacheService: BannerCacheService,
     private configService: ConfigService,
+    private fakeProfileService: FakeProfileService,
   ) {}
 
   @Get('/banner/:memberId')
@@ -68,7 +71,7 @@ export class BannerController {
     @Res() res: Response,
   ) {
     const { memberId } = params;
-    const { overwrites, bannerOptions } = this.getBannerDataFromRequest(
+    const { overwrites, bannerOptions } = await this.getBannerDataFromRequest(
       params,
       query,
     );
@@ -78,7 +81,6 @@ export class BannerController {
 
     // TODO: move it from here to configService
     const IS_DEV = process.env.NODE_ENV === 'dev';
-    console.log('IS_DEV', process.env.NODE_ENV);
 
     if (IS_DEV) {
       const svg = await this.handleRenderRequest(
@@ -136,7 +138,7 @@ export class BannerController {
     );
   }
 
-  private getBannerDataFromRequest(
+  private async getBannerDataFromRequest(
     params: GetBannerParams,
     query: GetBannerQuery,
   ) {
@@ -162,14 +164,14 @@ export class BannerController {
       (p) => p !== undefined,
     );
 
-    // if (fakeProfile) {
-    //   const user = await this.discordService.getMemberByIdOrUsername(memberId);
-    //   const fakeProfileData = await FakeProfileService.getUserById(
-    //     user?.id as string,
-    //   );
-    //
-    //   Object.assign(overwrites, fakeProfileData);
-    // }
+    if (fakeProfile) {
+      const user = await this.discordService.getMemberByIdOrUsername(memberId);
+      const fakeProfileData = await this.fakeProfileService.getUserById(
+        user?.id as string,
+      );
+
+      Object.assign(overwrites, fakeProfileData);
+    }
 
     return { overwrites, bannerOptions };
   }

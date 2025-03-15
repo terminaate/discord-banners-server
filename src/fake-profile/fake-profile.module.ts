@@ -16,7 +16,7 @@ import { FakeProfileController } from '@/fake-profile/fake-profile.controller';
         return { baseURL: configService.get('FAKE_PROFILE_API') as string };
       },
     }),
-    CacheModule.register({ ttl: 5 * 60 * 1000 }),
+    CacheModule.register({ ttl: 2 * 60 * 1000 }),
   ],
   controllers: [FakeProfileController],
   providers: [
