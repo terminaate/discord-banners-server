@@ -8,7 +8,7 @@ import {
   Query,
   Res,
 } from '@nestjs/common';
-import { IsBooleanString, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 import { BannerOptions } from '@/banner/types/banner-options';
 import { UserDTO } from '@/common/dto/user.dto';
 import { pickBy } from 'lodash';
@@ -18,6 +18,7 @@ import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { BannerCacheService } from '@/banner/banner-cache.service';
 import { FakeProfileService } from '@/fake-profile/fake-profile.service';
+import { Transform } from 'class-transformer';
 
 class GetBannerParams {
   @IsString()
@@ -28,19 +29,23 @@ class GetBannerParams {
 
 class GetBannerQuery {
   @IsOptional()
-  @IsBooleanString()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true')
   cache?: boolean;
 
   @IsOptional()
-  @IsBooleanString()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true')
   animated?: boolean;
 
   @IsOptional()
-  @IsBooleanString()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true')
   compact?: boolean;
 
   @IsOptional()
-  @IsBooleanString()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true')
   fakeProfile?: boolean;
 
   @IsOptional()

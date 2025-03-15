@@ -21,6 +21,8 @@ import { UserDataForCanvas } from '@/banner/types/user-data-for-canvas';
 import { BorderRadius } from '@/banner/types/border-radius';
 import { ProfileEffectsService } from '@/fake-profile/profile-effects.service';
 import { AvatarDecorationsService } from '@/fake-profile/avatar-decorations.service';
+import { UserFlags } from 'discord.js';
+import { pickBy } from 'lodash';
 
 // TODO: add dynamic measurements like %
 
@@ -87,13 +89,13 @@ export class BannerRenderService {
       new BannerBackground(canvas),
       new BannerAvatar(canvas),
       new BannerStatus(canvas),
-      // new BannerUsername(canvas),
-      // new BannerPublicFlags(canvas),
+      new BannerUsername(canvas),
+      new BannerPublicFlags(canvas),
       // new BannerNitro(canvas),
       // new BannerActivity(canvas),
       // new BannerCustomStatus(canvas),
       // separator ? new BannerSeparator(canvas) : undefined,
-      // new BannerProfileEffect(canvas),
+      new BannerProfileEffect(canvas),
     ];
 
     for (const layer of layers) {
@@ -187,9 +189,19 @@ class BannerProfileEffect extends BaseBannerLayer {
       return;
     }
 
-    const profileEffectImage = await this.canvas.createImage(
-      user.profileEffect,
-    );
+    await this.canvas.drawImage({
+      x: this.x,
+      y: this.y,
+      url: user.profileEffect,
+      scale: (img) => ({
+        scaleX: this.width / img.naturalWidth,
+        scaleY: this.width / img.naturalWidth,
+      }),
+    });
+
+    // const profileEffectImage = await this.canvas.createImage(
+    //   user.profileEffect,
+    // );
 
     // this.canvas.ctx.save();
     //
@@ -274,23 +286,15 @@ class BannerAvatar extends BaseBannerLayer {
       this.canvas.toPixelsY(this.backgroundHeight),
     );
 
-    this.canvas.ctx.save();
-
-    this.canvas.ctx.translate(
-      this.canvas.toPixelsX(this.x) - size / 2,
-      this.canvas.toPixelsY(this.y) - size / 2,
-    );
     await this.canvas.drawImage({
-      x: 0,
-      y: 0,
+      x: this.canvas.toPixelsX(this.x) - size / 2,
+      y: this.canvas.toPixelsY(this.y) - size / 2,
       url: user.avatarDecoration,
       scale: (img) => ({
         scaleX: size / img.naturalWidth,
         scaleY: size / img.naturalHeight,
       }),
     });
-
-    this.canvas.ctx.restore();
   }
 
   private drawBackground() {
@@ -355,14 +359,14 @@ class BannerStatus extends BaseBannerLayer {
 }
 
 class BannerUsername extends BaseBannerLayer {
-  y = 234;
+  y: MeasurementUnit = '48%';
   x = BANNER_START_CONTENT_X;
 
   width?: MeasurementUnit;
   height?: MeasurementUnit;
 
   fillStyle = BannerColors.BASE_TEXT_COLOR;
-  font = "34px 'ABCGintoNormal'";
+  font = "20px 'ABCGintoNormal'";
 
   constructor(private canvas: BaseCanvas) {
     super();
@@ -376,75 +380,59 @@ class BannerUsername extends BaseBannerLayer {
     this.canvas.fillText({
       text: username,
       x: this.x,
-      y: '55%',
+      y: this.y,
     });
   }
 }
 
 class BannerPublicFlags extends BaseBannerLayer {
-  x = 901;
-  y = 212;
-  width = 24;
-  height = 24;
+  x: MeasurementUnit = BANNER_START_CONTENT_X;
+  y: MeasurementUnit = '50%';
+  width = 15;
+  height = 15;
+
+  margin = 2.5;
 
   constructor(private canvas: BaseCanvas) {
     super();
-
-    this.x = this.canvas.width - 60;
   }
 
   async render({ user }: UserDataForCanvas): Promise<void> {
-    // TODO add support for multiple flags
     const { flags } = user;
     if (!flags || !flags.length) {
       return;
     }
 
-    const hypesquadImage = await this.canvas.createImage(
-      FlagsImages[flags[0]]!,
-      true,
+    const images = Object.values(
+      pickBy(FlagsImages, (value, key) =>
+        flags.includes(key as keyof typeof UserFlags),
+      ),
     );
 
-    this.canvas.ctx.drawImage(
-      hypesquadImage,
-      this.x,
-      this.y,
-      this.width,
-      this.height,
-    );
-  }
-}
+    user.premiumSince = 5;
 
-class BannerNitro extends BaseBannerLayer {
-  x = 857;
-  y = 212;
-  width = 34;
-  height = 24;
-
-  constructor(private canvas: BaseCanvas) {
-    super();
-
-    this.x = this.canvas.width - 104;
-  }
-
-  async render({ user }: UserDataForCanvas) {
-    const { premiumSince } = user;
-    if (!premiumSince) {
-      return;
+    if (user.premiumSince) {
+      images.push(path.resolve(AssetsPath, 'icons/discordnitro.svg'));
     }
 
-    const nitroImage = await this.canvas.createImage(
-      path.resolve(AssetsPath, 'icons/nitro.svg'),
-      true,
-    );
+    // TODO: add background
 
-    this.canvas.ctx.drawImage(
-      nitroImage,
-      this.x,
-      this.y,
-      this.width,
-      this.height,
-    );
+    let x = this.canvas.toPixelsX(this.x);
+
+    for (const flagImage of images) {
+      await this.canvas.drawImage({
+        x,
+        y: this.y,
+        url: flagImage,
+        local: true,
+        scale: (img) => ({
+          scaleX: this.width / img.naturalWidth,
+          scaleY: this.height / img.naturalHeight,
+        }),
+      });
+
+      x += this.width + this.margin;
+    }
   }
 }
 

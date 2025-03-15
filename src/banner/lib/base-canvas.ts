@@ -161,11 +161,12 @@ export class BaseCanvas extends Canvas {
 
       this.ctx.save();
 
+      this.ctx.translate(x, y);
       this.ctx.scale(
         scaleX ?? width / image.naturalWidth,
         scaleY ?? height / image.naturalHeight,
       );
-      this.ctx.drawImage(image, x, y);
+      this.ctx.drawImage(image, 0, 0);
 
       this.ctx.restore();
     } else {

@@ -13,20 +13,18 @@ export const StatusColors: Record<PresenceStatus, string> = {
 
 export const AssetsPath = path.resolve(__dirname, '../../assets/');
 
-// Add more images
 export const FlagsImages: Partial<Record<keyof typeof UserFlags, string>> = {
-  HypeSquadOnlineHouse1: path.resolve(
-    AssetsPath,
-    'icons/HypeSquad_Bravery.svg',
-  ),
+  HypeSquadOnlineHouse1: path.resolve(AssetsPath, 'icons/hypesquadbravery.svg'),
   HypeSquadOnlineHouse2: path.resolve(
     AssetsPath,
-    'icons/HypeSquad_Brilliance.svg',
+    'icons/hypesquadbrilliance.svg',
   ),
-  HypeSquadOnlineHouse3: path.resolve(
-    AssetsPath,
-    'icons/HypeSquad_Balance.svg',
-  ),
+  HypeSquadOnlineHouse3: path.resolve(AssetsPath, 'icons/hypesquadbalance.svg'),
+  ActiveDeveloper: path.resolve(AssetsPath, 'icons/activedeveloper.svg'),
+  BugHunterLevel1: path.resolve(AssetsPath, 'icons/bughunterlevel1.svg'),
+  BugHunterLevel2: path.resolve(AssetsPath, 'icons/bughunterlevel2.svg'),
+  Partner: path.resolve(AssetsPath, 'icons/discordpartner.svg'),
+  Staff: path.resolve(AssetsPath, 'icons/discordstaff.svg'),
 };
 
 export const ActivitiesText: Partial<Record<ActivityType, string>> = {
@@ -44,10 +42,10 @@ export const BannerColors = {
   THIRD_TEXT_COLOR: '#B2B2B4',
 };
 
-export const BANNER_DEFAULT_WIDTH = 300;
+export const BANNER_DEFAULT_WIDTH = 350;
 export const BANNER_COMPACT_WIDTH = 600;
-export const BANNER_DEFAULT_HEIGHT = 466;
-export const BANNER_START_CONTENT_X: MeasurementUnit = '27%';
+export const BANNER_DEFAULT_HEIGHT = 516;
+export const BANNER_START_CONTENT_X: MeasurementUnit = '5%';
 
 export const BannerDynamicHeights: BannerDynamicHeight[] = [
   {
