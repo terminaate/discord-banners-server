@@ -33,9 +33,7 @@
 //
 //     void renderBanner(
 //       member,
-//       member.presence?.activities,
-//       overwrites,
-//       bannerOptions,
+
 //     );
 //   });
 //
@@ -60,7 +58,6 @@
 //   });
 //
 //   discordClient.on('guildMemberAdd', (member) => {
-//     renderBanner(member, member.presence?.activities);
 //   });
 //
 //   await discordClient.login(process.env.BOT_TOKEN);

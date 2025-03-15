@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { BannerController } from './banner.controller';
 import { BannerService } from './banner.service';
 import { BannerCacheService } from '@/banner/banner-cache.service';
@@ -11,7 +11,7 @@ import { FakeProfileModule } from '@/fake-profile/fake-profile.module';
 
 @Module({
   imports: [
-    DiscordModule,
+    forwardRef(() => DiscordModule),
     FakeProfileModule,
     CacheModule.registerAsync({
       imports: [ConfigModule],
@@ -28,5 +28,6 @@ import { FakeProfileModule } from '@/fake-profile/fake-profile.module';
   ],
   controllers: [BannerController],
   providers: [BannerCacheService, BannerRenderService, BannerService],
+  exports: [BannerService, BannerCacheService],
 })
 export class BannerModule {}
