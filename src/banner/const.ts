@@ -1,4 +1,4 @@
-import { ActivityType, PresenceStatus } from 'discord.js';
+import { ActivityType, PresenceStatus, UserFlags } from 'discord.js';
 import * as path from 'path';
 import { BannerDynamicHeight } from '@/banner/types/banner-dynamic-height';
 
@@ -12,10 +12,20 @@ export const StatusColors: Record<PresenceStatus, string> = {
 
 export const AssetsPath = path.resolve(__dirname, '../../assets/');
 
-export const PublicFlagsImages: Record<number, string> = {
-  64: path.resolve(AssetsPath, 'icons/HypeSquad_Bravery.svg'),
-  128: path.resolve(AssetsPath, 'icons/HypeSquad_Brilliance.svg'),
-  256: path.resolve(AssetsPath, 'icons/HypeSquad_Balance.svg'),
+// Add more images
+export const FlagsImages: Partial<Record<keyof typeof UserFlags, string>> = {
+  HypeSquadOnlineHouse1: path.resolve(
+    AssetsPath,
+    'icons/HypeSquad_Bravery.svg',
+  ),
+  HypeSquadOnlineHouse2: path.resolve(
+    AssetsPath,
+    'icons/HypeSquad_Brilliance.svg',
+  ),
+  HypeSquadOnlineHouse3: path.resolve(
+    AssetsPath,
+    'icons/HypeSquad_Balance.svg',
+  ),
 };
 
 export const ActivitiesText: Partial<Record<ActivityType, string>> = {

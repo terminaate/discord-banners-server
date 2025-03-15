@@ -1,4 +1,4 @@
-import { ActivityType, GuildMember } from 'discord.js';
+import { ActivityType, GuildMember, UserFlags } from 'discord.js';
 
 const DEFAULT_ACCENT_COLOR = '#f1c40f';
 
@@ -9,7 +9,7 @@ export class UserDTO {
   banner?: string | null;
   status?: string | null;
   customStatus?: string | null;
-  publicFlags?: number | null;
+  flags?: (keyof typeof UserFlags)[] | null;
   accentColor: string;
   premiumSince?: number | null;
   profileEffect?: string;
@@ -26,7 +26,7 @@ export class UserDTO {
     this.avatar = member.displayAvatarURL({ size: 256, extension: 'png' });
     this.banner = member.user.bannerURL({ size: 1024, extension: 'png' });
     this.status = member.presence?.status ?? 'offline';
-    this.publicFlags = member.user.flags?.bitfield;
+    this.flags = member.user.flags?.toArray();
     this.accentColor = accentColor;
     this.premiumSince = member.premiumSinceTimestamp;
     this.avatarDecoration = member.user.avatarDecorationData?.asset;

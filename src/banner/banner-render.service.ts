@@ -9,7 +9,7 @@ import {
   BANNER_START_CONTENT_X,
   BannerColors,
   BannerDynamicHeights,
-  PublicFlagsImages,
+  FlagsImages,
   StatusColors,
 } from '@/banner/const';
 import { BannerOptions } from '@/banner/types/banner-options';
@@ -385,14 +385,14 @@ class BannerPublicFlags extends BaseBannerEntity {
   }
 
   async render({ user }: UserDataForCanvas): Promise<void> {
-    // TODO: https://stackoverflow.com/questions/69622717/discord-api-get-users-badges-using-public-flags
-    const { publicFlags } = user;
-    if (!publicFlags || !PublicFlagsImages[publicFlags]) {
+    // TODO add support for multiple flags
+    const { flags } = user;
+    if (!flags || !flags.length) {
       return;
     }
 
     const hypesquadImage = await this.canvas.createImage(
-      PublicFlagsImages[publicFlags],
+      FlagsImages[flags[0]]!,
       true,
     );
 
