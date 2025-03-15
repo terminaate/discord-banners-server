@@ -9,6 +9,7 @@ export class AvatarDecorationsService {
   private decorations: AvatarDecoration[] = [];
 
   constructor(private httpService: HttpService) {
+    // TODO: add cron to refetch decoration
     void this.init();
   }
 

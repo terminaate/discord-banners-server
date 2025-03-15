@@ -1,7 +1,7 @@
 import { BannerOptions } from '@/banner/types/banner-options';
 import { UserDataForCanvas } from '@/banner/types/user-data-for-canvas';
 
-export abstract class BaseBannerEntity {
+export abstract class BaseBannerLayer {
   abstract x: number;
   abstract y: number;
   abstract height?: number;

@@ -16,11 +16,13 @@ import { BannerOptions } from '@/banner/types/banner-options';
 import { BaseCanvas } from '@/banner/lib/base-canvas';
 import { UserDTO } from '@/common/dto/user.dto';
 import { UserActivityDTO } from '@/common/dto/user-activity.dto';
-import { BaseBannerEntity } from '@/banner/lib/base-banner-entity';
+import { BaseBannerLayer } from '@/banner/lib/base-banner-layer';
 import { UserDataForCanvas } from '@/banner/types/user-data-for-canvas';
 import { BorderRadius } from '@/banner/types/border-radius';
 import { ProfileEffectsService } from '@/fake-profile/profile-effects.service';
 import { AvatarDecorationsService } from '@/fake-profile/avatar-decorations.service';
+
+// TODO: add dynamic measurements like %
 
 @Injectable()
 export class BannerRenderService {
@@ -68,7 +70,9 @@ export class BannerRenderService {
     const canvas = new BaseCanvas(this.width, height, this.borderRadius, 'svg');
     canvas.heightScale = heightScale;
 
-    const layers: (BaseBannerEntity | undefined)[] = [
+    // TODO: add cliping canvas border-radius
+
+    const layers: (BaseBannerLayer | undefined)[] = [
       new BannerBackground(canvas),
       new BannerAvatar(canvas),
       new BannerStatus(canvas),
@@ -105,7 +109,7 @@ export class BannerRenderService {
   }
 }
 
-class BannerBackground extends BaseBannerEntity {
+class BannerBackground extends BaseBannerLayer {
   x = 0;
   y = 0;
   height = 185;
@@ -173,7 +177,7 @@ class BannerBackground extends BaseBannerEntity {
   }
 }
 
-class BannerProfileEffect extends BaseBannerEntity {
+class BannerProfileEffect extends BaseBannerLayer {
   x = 0;
   y = 0;
   width: number;
@@ -218,7 +222,7 @@ class BannerProfileEffect extends BaseBannerEntity {
   }
 }
 
-class BannerAvatar extends BaseBannerEntity {
+class BannerAvatar extends BaseBannerLayer {
   x = 73;
   y = 136;
   height = 159;
@@ -301,7 +305,7 @@ class BannerAvatar extends BaseBannerEntity {
   }
 }
 
-class BannerStatus extends BaseBannerEntity {
+class BannerStatus extends BaseBannerLayer {
   x = 206.5;
   y = 270.5;
 
@@ -345,7 +349,7 @@ class BannerStatus extends BaseBannerEntity {
   }
 }
 
-class BannerUsername extends BaseBannerEntity {
+class BannerUsername extends BaseBannerLayer {
   y = 234;
   x = BANNER_START_CONTENT_X;
 
@@ -372,7 +376,7 @@ class BannerUsername extends BaseBannerEntity {
   }
 }
 
-class BannerPublicFlags extends BaseBannerEntity {
+class BannerPublicFlags extends BaseBannerLayer {
   x = 901;
   y = 212;
   width = 24;
@@ -406,7 +410,7 @@ class BannerPublicFlags extends BaseBannerEntity {
   }
 }
 
-class BannerNitro extends BaseBannerEntity {
+class BannerNitro extends BaseBannerLayer {
   x = 857;
   y = 212;
   width = 34;
@@ -439,7 +443,7 @@ class BannerNitro extends BaseBannerEntity {
   }
 }
 
-class BannerActivity extends BaseBannerEntity {
+class BannerActivity extends BaseBannerLayer {
   x = BANNER_START_CONTENT_X;
   y = 371;
 
@@ -560,7 +564,7 @@ class BannerActivity extends BaseBannerEntity {
   }
 }
 
-class BannerCustomStatus extends BaseBannerEntity {
+class BannerCustomStatus extends BaseBannerLayer {
   x = BANNER_START_CONTENT_X;
   y = 269;
 
@@ -597,7 +601,7 @@ class BannerCustomStatus extends BaseBannerEntity {
   }
 }
 
-class BannerSeparator extends BaseBannerEntity {
+class BannerSeparator extends BaseBannerLayer {
   x = BANNER_START_CONTENT_X;
   y = 310;
   height = 1;

@@ -3,9 +3,12 @@ import { Canvas, CanvasRenderingContext2D, Image } from 'canvas';
 import * as fs from 'fs/promises';
 import axios from 'axios';
 
-type RoundRectOpts = {
+type Coords = {
   x: number;
   y: number;
+};
+
+type RoundRectOpts = Coords & {
   width: number;
   height: number;
   radius: BorderRadius;
@@ -14,36 +17,28 @@ type RoundRectOpts = {
   relativeToHeight?: boolean;
 };
 
-type RoundImageOpts = {
+type RoundImageOpts = Coords & {
   image: Image;
-  x: number;
-  y: number;
   width?: number;
   height?: number;
   radius: BorderRadius;
   relativeToHeight?: boolean;
 };
 
-type FillRectOpts = {
-  x: number;
-  y: number;
+type FillRectOpts = Coords & {
   width: number;
   height: number;
   relativeToHeight?: boolean;
 };
 
-type FillCircleOpts = {
-  x: number;
-  y: number;
+type FillCircleOpts = Coords & {
   radius: number;
   relativeToHeight?: boolean;
   fill?: boolean;
   stroke?: boolean;
 };
 
-type FillTextOpts = {
-  x: number;
-  y: number;
+type FillTextOpts = Coords & {
   text: string;
   maxWidth?: number;
   relativeToHeight?: boolean;
