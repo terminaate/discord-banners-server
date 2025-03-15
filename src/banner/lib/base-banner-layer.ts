@@ -1,11 +1,12 @@
 import { BannerOptions } from '@/banner/types/banner-options';
 import { UserDataForCanvas } from '@/banner/types/user-data-for-canvas';
+import { MeasurementUnit } from '@/banner/lib/base-canvas';
 
 export abstract class BaseBannerLayer {
-  abstract x: number;
-  abstract y: number;
-  abstract height?: number;
-  abstract width?: number;
+  abstract x: MeasurementUnit;
+  abstract y: MeasurementUnit;
+  abstract height?: MeasurementUnit;
+  abstract width?: MeasurementUnit;
 
   abstract render(
     userData: UserDataForCanvas,

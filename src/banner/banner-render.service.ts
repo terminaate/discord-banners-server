@@ -13,7 +13,7 @@ import {
   StatusColors,
 } from '@/banner/const';
 import { BannerOptions } from '@/banner/types/banner-options';
-import { BaseCanvas } from '@/banner/lib/base-canvas';
+import { BaseCanvas, MeasurementUnit } from '@/banner/lib/base-canvas';
 import { UserDTO } from '@/common/dto/user.dto';
 import { UserActivityDTO } from '@/common/dto/user-activity.dto';
 import { BaseBannerLayer } from '@/banner/lib/base-banner-layer';
@@ -65,10 +65,21 @@ export class BannerRenderService {
     }
 
     const userData: UserDataForCanvas = { user, activity };
-    const { height, heightScale, separator } = this.calculateHeight(userData);
+    const { height, separator } = this.calculateHeight(userData);
 
-    const canvas = new BaseCanvas(this.width, height, this.borderRadius, 'svg');
-    canvas.heightScale = heightScale;
+    const canvas = new BaseCanvas(this.width, height, 'svg');
+
+    canvas.roundRect({
+      x: 0,
+      y: 0,
+      width: canvas.width,
+      height: canvas.height,
+      radius: this.borderRadius,
+      fill: false,
+      stroke: false,
+    });
+
+    canvas.ctx.clip();
 
     // TODO: add cliping canvas border-radius
 
@@ -97,7 +108,6 @@ export class BannerRenderService {
       o.condition(user, activity),
     );
     let height = BANNER_DEFAULT_HEIGHT;
-
     let separator = true;
 
     if (heightCandidate) {
@@ -105,15 +115,17 @@ export class BannerRenderService {
       separator = Boolean(heightCandidate.separator);
     }
 
-    return { heightScale: height / BANNER_DEFAULT_HEIGHT, height, separator };
+    return { height, separator };
   }
 }
 
 class BannerBackground extends BaseBannerLayer {
   x = 0;
   y = 0;
-  height = 185;
+  height: MeasurementUnit = '48%';
   width!: number;
+
+  infoHeight: MeasurementUnit = '52%';
 
   constructor(private canvas: BaseCanvas) {
     super();
@@ -124,55 +136,35 @@ class BannerBackground extends BaseBannerLayer {
   async render({ user }: UserDataForCanvas) {
     const userBannerURL = user.banner;
     const accentColor = user.accentColor;
-    const borderRadius = this.canvas.borderRadius;
 
     if (userBannerURL) {
-      const backgroundImage = await this.canvas.createImage(userBannerURL);
-
-      const scaleX = this.width / backgroundImage.naturalWidth;
-
-      this.canvas.ctx.save();
-
-      this.canvas.ctx.scale(scaleX, scaleX);
-
-      this.canvas.ctx.drawImage(
-        backgroundImage,
-        this.x,
-        (this.height - backgroundImage.naturalHeight) / 2,
-      );
-
-      this.canvas.ctx.restore();
+      await this.canvas.drawImage({
+        url: userBannerURL,
+        x: this.x,
+        y: this.y,
+        scale: (img) => ({
+          scaleX: this.width / img.naturalWidth,
+          scaleY: this.width / img.naturalWidth,
+        }),
+      });
     } else {
       this.canvas.fillStyle = accentColor ?? BannerColors.DEFAULT_ACCENT_COLOR;
 
-      this.canvas.roundRect({
+      this.canvas.fillRect({
         x: 0,
         y: 0,
         width: this.width,
         height: this.height,
-        relativeToHeight: true,
-        radius: {
-          tl: borderRadius.tl,
-          tr: borderRadius.tr,
-        },
-        fill: true,
-        stroke: false,
       });
     }
 
     // @note: draw an info background
     this.canvas.fillStyle = BannerColors.INFO_COLOR;
-    this.canvas.roundRect({
+    this.canvas.fillRect({
       x: 0,
       y: this.height,
       width: this.canvas.width,
-      height: this.canvas.height - this.height,
-      radius: {
-        bl: borderRadius.bl,
-        br: borderRadius.br,
-      },
-      fill: true,
-      stroke: false,
+      height: this.infoHeight,
     });
   }
 }
@@ -199,26 +191,26 @@ class BannerProfileEffect extends BaseBannerLayer {
       user.profileEffect,
     );
 
-    this.canvas.ctx.save();
-
-    this.canvas.ctx.translate(
-      this.x,
-      bannerOptions?.compact
-        ? 0
-        : (this.canvas.height - profileEffectImage.naturalHeight) / 2,
-    );
-
-    const x = this.width / profileEffectImage.naturalWidth;
-
-    this.canvas.ctx.scale(x, x);
-    this.canvas.roundImage({
-      x: 0,
-      y: 0,
-      image: profileEffectImage,
-      radius: this.canvas.borderRadius,
-    });
-
-    this.canvas.ctx.restore();
+    // this.canvas.ctx.save();
+    //
+    // this.canvas.ctx.translate(
+    //   this.x,
+    //   bannerOptions?.compact
+    //     ? 0
+    //     : (this.canvas.height - profileEffectImage.naturalHeight) / 2,
+    // );
+    //
+    // const x = this.width / profileEffectImage.naturalWidth;
+    //
+    // this.canvas.ctx.scale(x, x);
+    // this.canvas.roundImage({
+    //   x: 0,
+    //   y: 0,
+    //   image: profileEffectImage,
+    //   radius: this.canvas.borderRadius,
+    // });
+    //
+    // this.canvas.ctx.restore();
   }
 }
 
@@ -353,8 +345,8 @@ class BannerUsername extends BaseBannerLayer {
   y = 234;
   x = BANNER_START_CONTENT_X;
 
-  width?: number;
-  height?: number;
+  width?: MeasurementUnit;
+  height?: MeasurementUnit;
 
   fillStyle = BannerColors.BASE_TEXT_COLOR;
   font = "34px 'ABCGintoNormal'";
@@ -371,7 +363,7 @@ class BannerUsername extends BaseBannerLayer {
     this.canvas.fillText({
       text: username,
       x: this.x,
-      y: this.y,
+      y: '55%',
     });
   }
 }
@@ -507,13 +499,13 @@ class BannerActivity extends BaseBannerLayer {
       isLocalImage,
     );
 
-    this.canvas.ctx.drawImage(
-      activityImage,
-      this.x,
-      this.activityImageY * this.canvas.heightScale,
-      this.activityImageWidth,
-      this.activityImageHeight,
-    );
+    // this.canvas.ctx.drawImage(
+    //   activityImage,
+    //   this.x,
+    //   this.activityImageY * this.canvas.heightScale,
+    //   this.activityImageWidth,
+    //   this.activityImageHeight,
+    // );
   }
 
   private drawActivityName(activity: UserActivityDTO) {

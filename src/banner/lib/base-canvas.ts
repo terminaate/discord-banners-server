@@ -3,14 +3,16 @@ import { Canvas, CanvasRenderingContext2D, Image } from 'canvas';
 import * as fs from 'fs/promises';
 import axios from 'axios';
 
+export type MeasurementUnit = number | `${number}%`;
+
 type Coords = {
-  x: number;
-  y: number;
+  x: MeasurementUnit;
+  y: MeasurementUnit;
 };
 
 type RoundRectOpts = Coords & {
-  width: number;
-  height: number;
+  width: MeasurementUnit;
+  height: MeasurementUnit;
   radius: BorderRadius;
   fill?: boolean;
   stroke?: boolean;
@@ -19,15 +21,26 @@ type RoundRectOpts = Coords & {
 
 type RoundImageOpts = Coords & {
   image: Image;
-  width?: number;
-  height?: number;
+  width?: MeasurementUnit;
+  height?: MeasurementUnit;
   radius: BorderRadius;
   relativeToHeight?: boolean;
 };
 
+type DrawImageOpts = Coords & {
+  url: string;
+  local?: boolean;
+  scale?: (image: Image) => {
+    scaleX?: number;
+    scaleY?: number;
+  };
+  width?: MeasurementUnit;
+  height?: MeasurementUnit;
+};
+
 type FillRectOpts = Coords & {
-  width: number;
-  height: number;
+  width: MeasurementUnit;
+  height: MeasurementUnit;
   relativeToHeight?: boolean;
 };
 
@@ -59,18 +72,11 @@ const imagesCache = new Map<string, string>();
 export class BaseCanvas extends Canvas {
   ctx: CanvasRenderingContext2D;
   heightScale: number;
-  borderRadius: Required<BorderRadiusObject>;
 
-  constructor(
-    width: number,
-    height: number,
-    borderRadius: BorderRadius = 14,
-    type?: 'pdf' | 'svg',
-  ) {
+  constructor(width: number, height: number, type?: 'pdf' | 'svg') {
     super(width, height, type);
 
     this.ctx = this.getContext('2d');
-    this.borderRadius = this.getBorderRadiusObject(borderRadius);
   }
 
   set fillStyle(newValue: string | CanvasGradient | CanvasPattern) {
@@ -96,6 +102,15 @@ export class BaseCanvas extends Canvas {
     radius,
     image,
   }: RoundImageOpts) {
+    x = this.toPixelsX(x);
+    y = this.toPixelsY(y);
+    if (width) {
+      width = this.toPixelsX(width);
+    }
+    if (height) {
+      height = this.toPixelsY(height);
+    }
+
     if (relativeToHeight) {
       y = y * this.heightScale;
     }
@@ -116,6 +131,47 @@ export class BaseCanvas extends Canvas {
     this.ctx.restore();
   }
 
+  async drawImage({
+    x,
+    y,
+    width,
+    height,
+    url,
+    local = false,
+    scale,
+  }: DrawImageOpts) {
+    x = this.toPixelsX(x);
+    y = this.toPixelsY(y);
+    if (width) {
+      width = this.toPixelsX(width);
+    }
+    if (height) {
+      height = this.toPixelsY(height);
+    }
+
+    const image = await this.createImage(url, local);
+
+    width ??= image.naturalWidth;
+    height ??= image.naturalHeight;
+
+    if (scale) {
+      const { scaleX, scaleY } = scale(image);
+
+      this.ctx.save();
+
+      this.ctx.scale(
+        scaleX ?? width / image.naturalWidth,
+        scaleY ?? height / image.naturalHeight,
+      );
+      this.ctx.drawImage(image, x, y);
+
+      this.ctx.restore();
+    } else {
+      this.ctx.drawImage(image, x, y, width, height);
+    }
+  }
+
+  // TODO: this function is useless because we have ctx.roundRect
   roundRect({
     x,
     y,
@@ -126,6 +182,15 @@ export class BaseCanvas extends Canvas {
     fill = true,
     radius = 5,
   }: RoundRectOpts) {
+    x = this.toPixelsX(x);
+    y = this.toPixelsY(y);
+    if (width) {
+      width = this.toPixelsX(width);
+    }
+    if (height) {
+      height = this.toPixelsY(height);
+    }
+
     const radiusObject = this.getBorderRadiusObject(radius);
 
     if (relativeToHeight) {
@@ -157,6 +222,15 @@ export class BaseCanvas extends Canvas {
   }
 
   fillRect({ x, y, width, height, relativeToHeight }: FillRectOpts) {
+    x = this.toPixelsX(x);
+    y = this.toPixelsY(y);
+    if (width) {
+      width = this.toPixelsX(width);
+    }
+    if (height) {
+      height = this.toPixelsY(height);
+    }
+
     if (relativeToHeight) {
       y = y * this.heightScale;
     }
@@ -172,6 +246,9 @@ export class BaseCanvas extends Canvas {
     fill = true,
     stroke = false,
   }: FillCircleOpts) {
+    x = this.toPixelsX(x);
+    y = this.toPixelsY(y);
+
     if (relativeToHeight) {
       y = y * this.heightScale;
     }
@@ -190,11 +267,36 @@ export class BaseCanvas extends Canvas {
   }
 
   fillText({ text, x, y, relativeToHeight, maxWidth }: FillTextOpts) {
+    x = this.toPixelsX(x);
+    y = this.toPixelsY(y);
+
     if (relativeToHeight) {
       y = y * this.heightScale;
     }
 
     this.ctx.fillText(text, x, y, maxWidth);
+  }
+
+  toPixels(value: number | `${number}%`, max: number) {
+    if (typeof value === 'string' && value.endsWith('%')) {
+      return (parseFloat(value) / 100) * max;
+    }
+
+    return typeof value === 'number' ? value : parseInt(value);
+  }
+
+  getBorderRadiusObject(radius: BorderRadius): Required<BorderRadiusObject> {
+    let radiusObject = { tl: 0, tr: 0, br: 0, bl: 0 };
+
+    if (typeof radius === 'number') {
+      radiusObject = { tl: radius, tr: radius, br: radius, bl: radius };
+    } else {
+      for (const side in radiusObject) {
+        radiusObject[side] = (radius[side] || 0) as number;
+      }
+    }
+
+    return radiusObject;
   }
 
   private createImageFromBuffer(src: string | Buffer) {
@@ -243,19 +345,11 @@ export class BaseCanvas extends Canvas {
     return base64;
   }
 
-  private getBorderRadiusObject(
-    radius: BorderRadius,
-  ): Required<BorderRadiusObject> {
-    let radiusObject = { tl: 0, tr: 0, br: 0, bl: 0 };
+  private toPixelsX(value: number | `${number}%`) {
+    return this.toPixels(value, this.width);
+  }
 
-    if (typeof radius === 'number') {
-      radiusObject = { tl: radius, tr: radius, br: radius, bl: radius };
-    } else {
-      for (const side in radiusObject) {
-        radiusObject[side] = (radius[side] || 0) as number;
-      }
-    }
-
-    return radiusObject;
+  private toPixelsY(value: number | `${number}%`) {
+    return this.toPixels(value, this.height);
   }
 }
