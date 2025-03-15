@@ -11,7 +11,7 @@ import {
 import { IsBooleanString, IsOptional, IsString } from 'class-validator';
 import { BannerOptions } from '@/banner/types/banner-options';
 import { UserDTO } from '@/common/dto/user.dto';
-import { pickBy, sum } from 'lodash';
+import { pickBy } from 'lodash';
 import { DiscordService } from '@/discord/discord.service';
 import { BannerService } from '@/banner/banner.service';
 import { ConfigService } from '@nestjs/config';
@@ -76,50 +76,12 @@ export class BannerController {
     );
     const { cache = false } = query;
 
-    const member = await this.discordService.getMemberByIdOrUsername(memberId);
-    if (!member) {
-      throw new NotFoundException();
-    }
-
-    const results: Record<string, number> = {};
-
-    for (let i = 0; i < 100; i++) {
-      const startDate = Date.now();
-
-      if (cache) {
-        const cachedBanner = await this.bannerCacheService.getBannerFromCache({
-          userId: memberId,
-          overwrites,
-          bannerOptions,
-        });
-
-        if (!cachedBanner) {
-          await this.bannerService.renderBanner(
-            member,
-            member.presence?.activities,
-            overwrites,
-            bannerOptions,
-          );
-        }
-      } else {
-        await this.bannerService.renderBanner(
-          member,
-          member.presence?.activities,
-          overwrites,
-          bannerOptions,
-        );
-      }
-
-      const endDate = Date.now();
-
-      results[i] = endDate - startDate;
-    }
-
-    const values = Object.values(results);
-
-    const averageTime = sum(values) / values.length;
-
-    return { averageTime, values };
+    return this.bannerService.benchmarkBannerRender(
+      memberId,
+      overwrites,
+      bannerOptions,
+      cache,
+    );
   }
 
   @Get('/banner/:memberId')
@@ -138,10 +100,7 @@ export class BannerController {
 
     const cacheHeader = this.getCacheHeader(cache);
 
-    // TODO: move it from here to configService
-    const IS_DEV = process.env.NODE_ENV === 'dev';
-
-    if (IS_DEV) {
+    if (this.configService.get('IS_DEV')) {
       const svg = await this.handleRenderRequest(
         memberId,
         overwrites,

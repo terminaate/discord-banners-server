@@ -1,8 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { UserDTO } from '@/common/dto/user.dto';
 import { BannerOptions } from '@/banner/types/banner-options';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { pickBy } from 'lodash';
 
 type CacheKeyData = {
   overwrites?: Partial<Record<keyof UserDTO, string>>;
@@ -42,6 +43,8 @@ type GetFromCacheOpts = {
 
 @Injectable()
 export class BannerCacheService {
+  private readonly logger = new Logger(BannerCacheService.name);
+
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
   public async setBannerInCache(cacheKeyOpts: SetCacheKeyOpts, data: string) {
@@ -66,17 +69,13 @@ export class BannerCacheService {
     bannerOptions = { compact: false, animated: true },
     overwrites = {},
   }: GetFromCacheOpts): Promise<string | undefined> {
-    // TODO: simplify with lodash
-    const data: CacheKeyData = {};
-
-    if (Object.values(overwrites ?? {}).some((p) => p !== undefined)) {
-      data.overwrites = overwrites;
-    }
-
-    if (Object.values(bannerOptions ?? {}).some((p) => p !== undefined)) {
-      data.bannerOptions = bannerOptions;
-    }
-
+    const data: CacheKeyData = pickBy(
+      {
+        overwrites,
+        bannerOptions,
+      },
+      (obj) => Object.values(obj ?? {}).some((p) => p !== undefined),
+    );
     const serializedData = btoa(JSON.stringify(data));
 
     const relatedCacheKeys = await this.scanCacheKeys((candidate) => {
@@ -118,16 +117,13 @@ export class BannerCacheService {
   }: GenerateCacheKeyOpts) {
     const cacheKey = `${userId}@${username}`;
 
-    // TODO: simplify with lodash
-    const data: CacheKeyData = {};
-
-    if (Object.values(overwrites ?? {}).some((p) => p !== undefined)) {
-      data.overwrites = overwrites;
-    }
-
-    if (Object.values(bannerOptions ?? {}).some((p) => p !== undefined)) {
-      data.bannerOptions = bannerOptions;
-    }
+    const data: CacheKeyData = pickBy(
+      {
+        overwrites,
+        bannerOptions,
+      },
+      (obj) => Object.values(obj ?? {}).some((p) => p !== undefined),
+    );
 
     return `${cacheKey}@${btoa(JSON.stringify(data))}`;
   }
@@ -158,17 +154,22 @@ export class BannerCacheService {
   }
 
   private async scanCacheKeys(filterCb: (val: string) => boolean) {
-    const redisStore = this.cacheManager.stores[0];
-    const matchedKeys: string[] = [];
+    try {
+      const redisStore = this.cacheManager.stores[0];
+      const matchedKeys: string[] = [];
 
-    const iterator = redisStore.iterator!;
+      const iterator = redisStore.iterator!;
 
-    for await (const [key] of iterator({})) {
-      if (filterCb(key as string)) {
-        matchedKeys.push(key as string);
+      for await (const [key] of iterator({})) {
+        if (filterCb(key as string)) {
+          matchedKeys.push(key as string);
+        }
       }
-    }
 
-    return matchedKeys;
+      return matchedKeys;
+    } catch (e) {
+      this.logger.error(e);
+      return [];
+    }
   }
 }

@@ -6,11 +6,16 @@ import { DiscordModule } from './discord/discord.module';
 import { BannerModule } from './banner/banner.module';
 import { FakeProfileModule } from './fake-profile/fake-profile.module';
 
+const config = () => ({
+  IS_DEV: process.env.NODE_ENV === 'dev',
+});
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
+      load: [config],
     }),
     NecordModule.forRoot({
       token: process.env.BOT_TOKEN,
