@@ -3,7 +3,7 @@ import { UserDTO } from '@/dto/user.dto';
 import { BannerOptions } from '@/types/BannerOptions';
 import { UserActivityDTO } from '@/dto/user-activity.dto';
 import React from 'preact/compat';
-import { CacheService } from '@/services/CacheService';
+import { BannerCacheService } from '@/services/BannerCacheService';
 import { Banner } from '@/banner/Banner';
 
 global.React = React;
@@ -28,7 +28,7 @@ export const renderBanner = async (
 
 	const svg = bannerInstance.toBuffer().toString();
 
-	await CacheService.setInCache(
+	await BannerCacheService.setInCache(
 		{
 			userId: userDto.id,
 			username: userDto.username,

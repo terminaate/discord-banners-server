@@ -38,7 +38,7 @@ type GetFromCacheOpts = {
 	overwrites?: Partial<Record<keyof UserDTO, string>>;
 };
 
-export class CacheService {
+export class BannerCacheService {
 	public static async setInCache(cacheKeyOpts: SetCacheKeyOpts, data: string) {
 		const { userId } = cacheKeyOpts;
 

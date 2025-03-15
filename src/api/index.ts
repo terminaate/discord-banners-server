@@ -14,7 +14,7 @@ import { UserDTO } from '@/dto/user.dto';
 import { getMemberByIdOrUsername } from '@/utils/getMemberByIdOrUsername';
 import { renderBanner } from '@/banner/renderBanner';
 import { BannerOptions } from '@/types/BannerOptions';
-import { CacheService } from '@/services/CacheService';
+import { BannerCacheService } from '@/services/BannerCacheService';
 import { pickBy, sum } from 'lodash';
 import { FakeProfileService } from '@/services/FakeProfileService';
 import { discordClient } from '@/bot';
@@ -157,7 +157,7 @@ export const startServer = async () => {
 				const startDate = Date.now();
 
 				if (cache) {
-					const cachedBanner = await CacheService.getFromCache({
+					const cachedBanner = await BannerCacheService.getFromCache({
 						userId: memberId,
 						overwrites,
 						bannerOptions,
@@ -223,7 +223,7 @@ export const startServer = async () => {
 				});
 			}
 
-			const cachedBanner = await CacheService.getFromCache({
+			const cachedBanner = await BannerCacheService.getFromCache({
 				userId: memberId,
 				overwrites,
 				bannerOptions,

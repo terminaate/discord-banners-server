@@ -1,6 +1,6 @@
 import { Client, GatewayIntentBits } from 'discord.js';
 import { renderBanner } from '@/banner/renderBanner';
-import { CacheService } from '@/services/CacheService';
+import { BannerCacheService } from '@/services/BannerCacheService';
 
 export const discordClient = new Client({
 	intents: [
@@ -24,7 +24,7 @@ export const startBot = async () => {
 			return;
 		}
 
-		const cacheData = await CacheService.getCacheData({
+		const cacheData = await BannerCacheService.getCacheData({
 			userId: user.id,
 		});
 
@@ -44,7 +44,7 @@ export const startBot = async () => {
 			return;
 		}
 
-		const cacheData = await CacheService.getCacheData({
+		const cacheData = await BannerCacheService.getCacheData({
 			userId: presence.member.id,
 		});
 
