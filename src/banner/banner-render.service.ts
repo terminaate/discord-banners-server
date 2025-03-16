@@ -24,8 +24,6 @@ import { AvatarDecorationsService } from '@/fake-profile/avatar-decorations.serv
 import { UserFlags } from 'discord.js';
 import { pickBy } from 'lodash';
 
-// TODO: add dynamic measurements like %
-
 @Injectable()
 export class BannerRenderService {
   private readonly width = BANNER_DEFAULT_WIDTH;
@@ -83,15 +81,12 @@ export class BannerRenderService {
 
     canvas.ctx.clip();
 
-    // TODO: add cliping canvas border-radius
-
     const layers: (BaseBannerLayer | undefined)[] = [
       new BannerBackground(canvas),
       new BannerAvatar(canvas),
       new BannerStatus(canvas),
       new BannerUsername(canvas),
       new BannerPublicFlags(canvas),
-      // new BannerNitro(canvas),
       // new BannerActivity(canvas),
       // new BannerCustomStatus(canvas),
       // separator ? new BannerSeparator(canvas) : undefined,
@@ -109,7 +104,7 @@ export class BannerRenderService {
     const heightCandidate = BannerDynamicHeights.find((o) =>
       o.condition(user, activity),
     );
-    let height = BANNER_DEFAULT_HEIGHT;
+    let height = this.height;
     let separator = true;
 
     if (heightCandidate) {
@@ -184,7 +179,7 @@ class BannerProfileEffect extends BaseBannerLayer {
     this.height = canvas.height;
   }
 
-  async render({ user }: UserDataForCanvas, bannerOptions?: BannerOptions) {
+  async render({ user }: UserDataForCanvas) {
     if (!user.profileEffect) {
       return;
     }
@@ -198,31 +193,6 @@ class BannerProfileEffect extends BaseBannerLayer {
         scaleY: this.width / img.naturalWidth,
       }),
     });
-
-    // const profileEffectImage = await this.canvas.createImage(
-    //   user.profileEffect,
-    // );
-
-    // this.canvas.ctx.save();
-    //
-    // this.canvas.ctx.translate(
-    //   this.x,
-    //   bannerOptions?.compact
-    //     ? 0
-    //     : (this.canvas.height - profileEffectImage.naturalHeight) / 2,
-    // );
-    //
-    // const x = this.width / profileEffectImage.naturalWidth;
-    //
-    // this.canvas.ctx.scale(x, x);
-    // this.canvas.roundImage({
-    //   x: 0,
-    //   y: 0,
-    //   image: profileEffectImage,
-    //   radius: this.canvas.borderRadius,
-    // });
-    //
-    // this.canvas.ctx.restore();
   }
 }
 
@@ -388,8 +358,8 @@ class BannerUsername extends BaseBannerLayer {
 class BannerPublicFlags extends BaseBannerLayer {
   x: MeasurementUnit = BANNER_START_CONTENT_X;
   y: MeasurementUnit = '50%';
-  width = 15;
-  height = 15;
+  width = 20;
+  height = 20;
 
   margin = 2.5;
 
@@ -408,8 +378,6 @@ class BannerPublicFlags extends BaseBannerLayer {
         flags.includes(key as keyof typeof UserFlags),
       ),
     );
-
-    user.premiumSince = 5;
 
     if (user.premiumSince) {
       images.push(path.resolve(AssetsPath, 'icons/discordnitro.svg'));

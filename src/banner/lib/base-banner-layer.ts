@@ -13,3 +13,17 @@ export abstract class BaseBannerLayer {
     bannerOptions?: BannerOptions,
   ): Promise<void> | void;
 }
+
+export class BaseBannerLayerImpl extends BaseBannerLayer {
+  x: MeasurementUnit;
+  y: MeasurementUnit;
+  height?: MeasurementUnit;
+  width?: MeasurementUnit;
+
+  render(
+    userData: UserDataForCanvas,
+    bannerOptions?: BannerOptions,
+  ): Promise<void> | void {
+    return undefined;
+  }
+}
