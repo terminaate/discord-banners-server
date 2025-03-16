@@ -87,7 +87,7 @@ export class BannerRenderService {
       new BannerStatus(canvas),
       new BannerUsername(canvas),
       new BannerPublicFlags(canvas),
-      // new BannerActivity(canvas),
+      new BannerActivities(canvas),
       // new BannerCustomStatus(canvas),
       // separator ? new BannerSeparator(canvas) : undefined,
       new BannerProfileEffect(canvas),
@@ -124,12 +124,6 @@ class BannerBackground extends BaseBannerLayer {
 
   infoHeight: MeasurementUnit = '75%';
 
-  constructor(canvas: BaseCanvas) {
-    super(canvas);
-
-    this.width = canvas.width;
-  }
-
   async render({ user }: UserDataForCanvas) {
     const userBannerURL = user.banner;
     const accentColor = user.accentColor;
@@ -163,6 +157,10 @@ class BannerBackground extends BaseBannerLayer {
       width: this.canvas.width,
       height: this.infoHeight,
     });
+  }
+
+  protected beforeRender() {
+    this.width = this.canvas.width;
   }
 }
 
@@ -207,10 +205,6 @@ class BannerAvatar extends BaseBannerLayer {
   backgroundWidth: MeasurementUnit = '30%';
   backgroundHeight: MeasurementUnit = '60%';
   backgroundRadius: MeasurementUnit = '50%';
-
-  constructor(canvas: BaseCanvas) {
-    super(canvas);
-  }
 
   async render({ user }: UserDataForCanvas): Promise<void> {
     this.drawBackground();
@@ -287,8 +281,8 @@ class BannerAvatar extends BaseBannerLayer {
 }
 
 class BannerStatus extends BaseBannerLayer {
-  x: MeasurementUnit = '27%';
-  y: MeasurementUnit = '32%';
+  x: MeasurementUnit;
+  y: MeasurementUnit;
 
   width?: number;
   height?: number;
@@ -298,10 +292,6 @@ class BannerStatus extends BaseBannerLayer {
   radius = 10;
 
   marginFromAvatar = -25;
-
-  constructor(canvas: BaseCanvas) {
-    super(canvas);
-  }
 
   render({ user }: UserDataForCanvas): void {
     const userStatus = user.status;
@@ -361,10 +351,6 @@ class BannerUsername extends BaseBannerLayer {
   font = "20px 'ABCGintoNormal'";
   fontSize = 20;
 
-  constructor(canvas: BaseCanvas) {
-    super(canvas);
-  }
-
   render({ user }: UserDataForCanvas) {
     const { username, globalName } = user;
 
@@ -414,15 +400,11 @@ class BannerUsername extends BaseBannerLayer {
 
 class BannerPublicFlags extends BaseBannerLayer {
   x: MeasurementUnit = BANNER_START_CONTENT_X;
-  y = 5;
+  y: MeasurementUnit;
   width = 24;
   height = 24;
 
   marginBetweenFlags = 2.5;
-
-  constructor(canvas: BaseCanvas) {
-    super(canvas);
-  }
 
   async render({ user }: UserDataForCanvas): Promise<void> {
     const { flags } = user;
@@ -491,12 +473,115 @@ class BannerPublicFlags extends BaseBannerLayer {
   }
 }
 
+class BannerActivities extends BaseBannerLayer {
+  x = BANNER_START_CONTENT_X;
+  y: MeasurementUnit;
+
+  activityWidth: MeasurementUnit = '90%';
+  activityHeight: MeasurementUnit = 80;
+  activityBorderRadius: BorderRadius = 10;
+  activityPadding = 10;
+  activityImageSize = 60;
+  currentActivity: UserActivityDTO;
+  currentActivityY: number;
+
+  gapBetweenActivities = 10;
+
+  width: MeasurementUnit = '90%';
+  height?: number;
+
+  async render({ activities }: UserDataForCanvas): Promise<void> {
+    this.currentActivityY = this.canvas.toPixelsY(this.y);
+
+    for (const activity of activities) {
+      this.currentActivity = activity;
+      await this.drawActivity();
+
+      this.currentActivityY +=
+        this.canvas.toPixelsY(this.activityHeight) + this.gapBetweenActivities;
+    }
+  }
+
+  protected beforeRender(
+    userData: UserDataForCanvas,
+    bannerOptions?: BannerOptions,
+  ): Promise<void> | void {
+    const publicFlagsLayer = this.getRenderedLayer<BannerPublicFlags>(
+      BannerPublicFlags.name,
+    );
+
+    const marginTop = 10;
+
+    this.y =
+      this.canvas.toPixelsY(publicFlagsLayer.y) +
+      this.canvas.toPixelsY(publicFlagsLayer.height) +
+      marginTop;
+  }
+
+  private drawActivityBackground() {
+    this.canvas.fillStyle = BannerColors.SECONDARY_BACKGROUND_COLOR;
+    this.canvas.roundRect({
+      x: this.x,
+      y: this.currentActivityY,
+      height: this.activityHeight,
+      width: this.activityWidth,
+      radius: this.activityBorderRadius,
+    });
+  }
+
+  private async drawActivityImage() {
+    const x = this.canvas.toPixelsX(this.x) + 10;
+    const y = this.currentActivityY + 10;
+
+    const defaultActivityImageURL = path.resolve(
+      AssetsPath,
+      'icons/activity.svg',
+    );
+    const activityImageURL =
+      this.currentActivity.largeImageURL ?? defaultActivityImageURL;
+    const activityImage = await this.canvas.createImage(
+      activityImageURL,
+      activityImageURL === defaultActivityImageURL,
+    );
+
+    this.canvas.ctx.save();
+
+    console.log(activityImage.naturalWidth, this.activityImageSize);
+
+    this.canvas.roundRect({
+      x,
+      y,
+      height: this.activityImageSize,
+      width: this.activityImageSize,
+      radius: this.activityBorderRadius,
+      fill: false,
+      stroke: false,
+    });
+    this.canvas.ctx.clip();
+    // todo: center this image relatively to
+    await this.canvas.drawImage({
+      x,
+      y,
+      image: activityImage,
+      scale: (img) => ({
+        scaleX: this.activityImageSize / img.naturalHeight,
+        scaleY: this.activityImageSize / img.naturalHeight,
+      }),
+    });
+
+    this.canvas.ctx.restore();
+  }
+
+  private async drawActivity() {
+    this.drawActivityBackground();
+    await this.drawActivityImage();
+  }
+}
+
 // class BannerActivity extends BaseBannerLayer {
 //   x = BANNER_START_CONTENT_X;
 //   y = 371;
 //
-//   width?: number;
-//   height?: number;
 //
 //   activityTypeFont = "18px 'ABCGintoNormal'";
 //   activityTypeFillStyle = BannerColors.SECOND_TEXT_COLOR;

@@ -16,7 +16,7 @@ export abstract class BaseBannerLayer {
   // marginLeft?: MeasurementUnit | CalculateMarginVariable;
 
   // todo? maybe it's not a best place to do such a things
-  protected constructor(protected canvas: BaseCanvas) {}
+  constructor(protected canvas: BaseCanvas) {}
 
   async create(userData: UserDataForCanvas, bannerOptions?: BannerOptions) {
     // const previousLayer =

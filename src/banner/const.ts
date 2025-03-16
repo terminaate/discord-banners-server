@@ -54,25 +54,33 @@ export const BANNER_START_CONTENT_X: MeasurementUnit = '5%';
 
 export const BannerDynamicHeights: BannerDynamicHeight[] = [
   {
-    condition(user, activity) {
+    condition(user, activities) {
       const { customStatus } = user;
-      return !!customStatus && !activity;
+      return !!customStatus && !activities.length;
     },
     height: 330,
   },
   {
-    condition(user, activity) {
+    condition(user, activities) {
       const { customStatus } = user;
-      return !customStatus && !activity;
+      return !customStatus && !activities.length;
     },
     height: 320,
   },
   {
-    condition(user, activity) {
+    condition(user, activities) {
       const { customStatus } = user;
-      return !customStatus && !!activity;
+
+      return !customStatus && !!activities.length && activities.length <= 1;
     },
-    height: 421,
-    separator: true,
+    height: 320,
+  },
+  {
+    condition(user, activities) {
+      const { customStatus } = user;
+
+      return !customStatus && !!activities.length && activities.length >= 1;
+    },
+    height: 420,
   },
 ];

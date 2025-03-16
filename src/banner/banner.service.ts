@@ -80,7 +80,8 @@ export class BannerService {
     const filteredActivities =
       activities
         ?.filter((o) => o.type !== ActivityType.Custom)
-        .map((o) => new UserActivityDTO(o)) ?? [];
+        .map((o) => new UserActivityDTO(o))
+        .slice(0, 2) ?? [];
 
     const userDto = new UserDTO(member);
     Object.assign(userDto, overwrites);

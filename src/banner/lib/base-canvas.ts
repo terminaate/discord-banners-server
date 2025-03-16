@@ -19,7 +19,13 @@ type RoundRectOpts = Coords & {
 };
 
 type RoundImageOpts = Coords & {
-  image: Image;
+  url?: string;
+  local?: boolean;
+  image?: Image;
+  scale?: (image: Image) => {
+    scaleX?: number;
+    scaleY?: number;
+  };
   width?: MeasurementUnit;
   height?: MeasurementUnit;
   radius: BorderRadius;
@@ -35,6 +41,7 @@ type DrawImageOpts = Coords & {
   };
   width?: MeasurementUnit;
   height?: MeasurementUnit;
+  radius?: BorderRadius;
 };
 
 type FillRectOpts = Coords & {
@@ -67,7 +74,6 @@ const imagesCache = new Map<string, string>();
 // TODO: maybe move this to separated module?
 export class BaseCanvas extends Canvas {
   ctx: CanvasRenderingContext2D;
-  heightScale: number;
 
   constructor(width: number, height: number, type?: 'pdf' | 'svg') {
     super(width, height, type);
@@ -93,32 +99,6 @@ export class BaseCanvas extends Canvas {
     return await this.createImageFromBuffer(base64);
   }
 
-  roundImage({ x, y, height, width, radius, image }: RoundImageOpts) {
-    x = this.toPixelsX(x);
-    y = this.toPixelsY(y);
-    if (width) {
-      width = this.toPixelsX(width);
-    }
-    if (height) {
-      height = this.toPixelsY(height);
-    }
-
-    const radiusObject = this.getBorderRadiusObject(radius);
-
-    this.ctx.save();
-
-    width ??= image.width;
-    height ??= image.height;
-
-    this.ctx.beginPath();
-    this.ctx.roundRect(x, y, width, height, Object.values(radiusObject));
-    this.ctx.closePath();
-    this.ctx.clip();
-    this.ctx.drawImage(image, x, y, width, height);
-
-    this.ctx.restore();
-  }
-
   async drawImage({
     x,
     y,
@@ -128,6 +108,7 @@ export class BaseCanvas extends Canvas {
     image: originalImage,
     local = false,
     scale,
+    radius,
   }: DrawImageOpts) {
     x = this.toPixelsX(x);
     y = this.toPixelsY(y);
@@ -139,6 +120,7 @@ export class BaseCanvas extends Canvas {
     }
 
     const image = originalImage ?? (await this.createImage(url!, local));
+    const radiusObject = radius ? this.getBorderRadiusObject(radius) : null;
 
     width ??= image.naturalWidth;
     height ??= image.naturalHeight;
@@ -148,6 +130,13 @@ export class BaseCanvas extends Canvas {
 
       this.ctx.save();
 
+      // TODO: fix rounding corners (for some reason rounding only one top left corner)
+      if (radiusObject) {
+        this.ctx.beginPath();
+        this.ctx.roundRect(x, y, width, height, Object.values(radiusObject));
+        this.ctx.closePath();
+        this.ctx.clip();
+      }
       this.ctx.translate(x, y);
       this.ctx.scale(
         scaleX ?? width / image.naturalWidth,
@@ -157,7 +146,20 @@ export class BaseCanvas extends Canvas {
 
       this.ctx.restore();
     } else {
-      this.ctx.drawImage(image, x, y, width, height);
+      if (radiusObject) {
+        this.ctx.save();
+
+        this.ctx.beginPath();
+        this.ctx.roundRect(x, y, width, height, Object.values(radiusObject));
+        this.ctx.closePath();
+        this.ctx.clip();
+
+        this.ctx.drawImage(image, x, y, width, height);
+
+        this.ctx.restore();
+      } else {
+        this.ctx.drawImage(image, x, y, width, height);
+      }
     }
   }
 
