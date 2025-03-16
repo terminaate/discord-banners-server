@@ -4,10 +4,10 @@ import { BannerCacheService } from '@/banner/banner-cache.service';
 import { Activity, ActivityType, GuildMember } from 'discord.js';
 import { UserDTO } from '@/common/dto/user.dto';
 import { BannerOptions } from '@/banner/types/banner-options';
-import { UserActivityDTO } from '@/common/dto/user-activity.dto';
 import { sum } from 'lodash';
 import { DiscordService } from '@/discord/discord.service';
 import { formatBytes } from '@/utils/formatBytes';
+import { UserActivityDTO } from '@/common/dto/user-activity.dto';
 
 @Injectable()
 export class BannerService {
@@ -77,15 +77,17 @@ export class BannerService {
     overwrites?: Partial<Record<keyof UserDTO, string>>,
     bannerOptions?: BannerOptions,
   ) {
-    const activity = activities?.find((o) => o.type !== ActivityType.Custom);
-    const activityDto = activity ? new UserActivityDTO(activity) : undefined;
+    const filteredActivities =
+      activities
+        ?.filter((o) => o.type !== ActivityType.Custom)
+        .map((o) => new UserActivityDTO(o)) ?? [];
 
     const userDto = new UserDTO(member);
     Object.assign(userDto, overwrites);
 
     const canvas = await this.renderService.create(
       userDto,
-      activityDto,
+      filteredActivities,
       bannerOptions,
     );
 

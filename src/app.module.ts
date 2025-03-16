@@ -5,6 +5,7 @@ import { GatewayIntentBits } from 'discord.js';
 import { DiscordModule } from './discord/discord.module';
 import { BannerModule } from './banner/banner.module';
 import { FakeProfileModule } from './fake-profile/fake-profile.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 const config = () => ({
   IS_DEV: process.env.NODE_ENV === 'dev',
@@ -26,6 +27,7 @@ const config = () => ({
         GatewayIntentBits.GuildMessages,
       ],
     }),
+    ScheduleModule.forRoot(),
 
     DiscordModule,
     BannerModule,

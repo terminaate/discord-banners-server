@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { AvatarDecoration } from '@/fake-profile/types/avatar-decoration';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class AvatarDecorationsService {
@@ -9,7 +10,6 @@ export class AvatarDecorationsService {
   private decorations: AvatarDecoration[] = [];
 
   constructor(private httpService: HttpService) {
-    // TODO: add cron to refetch decoration
     void this.init();
   }
 
@@ -30,6 +30,7 @@ export class AvatarDecorationsService {
     return this.decorations.find((o) => o.asset === asset);
   }
 
+  @Cron('0 * * * *')
   private async init() {
     const { data: decorations } =
       await this.httpService.axiosRef.get<typeof this.decorations>(

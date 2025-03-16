@@ -24,7 +24,8 @@ export class UserDTO {
 
     this.id = member.id;
     this.username = member.user.tag.toLowerCase();
-    this.globalName = member.user.globalName;
+    this.globalName =
+      member.user.globalName !== this.username ? member.user.globalName : null;
     this.avatar = member.displayAvatarURL({ size: 256, extension: 'png' });
     this.banner = member.user.bannerURL({ size: 1024, extension: 'png' });
     this.status = member.presence?.status ?? 'offline';

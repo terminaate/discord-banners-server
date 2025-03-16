@@ -3,5 +3,5 @@ import { UserActivityDTO } from '@/common/dto/user-activity.dto';
 
 export type UserDataForCanvas = {
   user: UserDTO;
-  activity?: UserActivityDTO;
+  activities: UserActivityDTO[];
 };

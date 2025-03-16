@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ProfileEffect } from '@/fake-profile/types/profile-effect';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class ProfileEffectsService {
@@ -33,6 +34,7 @@ export class ProfileEffectsService {
     return this.profileEffects[id];
   }
 
+  @Cron('0 * * * *')
   private async init() {
     const { data: effects } =
       await this.httpService.axiosRef.get<typeof this.profileEffects>(

@@ -161,7 +161,6 @@ export class BaseCanvas extends Canvas {
     }
   }
 
-  // TODO: this function is useless because we have ctx.roundRect
   roundRect({
     x,
     y,
