@@ -2,6 +2,8 @@ import { BannerOptions } from '@/banner/types/banner-options';
 import { UserDataForCanvas } from '@/banner/types/user-data-for-canvas';
 import { MeasurementUnit } from '@/banner/lib/base-canvas';
 
+// TODO: add adaptive coordinates system that depends most likely on height (idk rn)
+
 export abstract class BaseBannerLayer {
   abstract x: MeasurementUnit;
   abstract y: MeasurementUnit;
@@ -12,18 +14,4 @@ export abstract class BaseBannerLayer {
     userData: UserDataForCanvas,
     bannerOptions?: BannerOptions,
   ): Promise<void> | void;
-}
-
-export class BaseBannerLayerImpl extends BaseBannerLayer {
-  x: MeasurementUnit;
-  y: MeasurementUnit;
-  height?: MeasurementUnit;
-  width?: MeasurementUnit;
-
-  render(
-    userData: UserDataForCanvas,
-    bannerOptions?: BannerOptions,
-  ): Promise<void> | void {
-    return undefined;
-  }
 }

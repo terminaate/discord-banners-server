@@ -7,6 +7,7 @@ import { BannerOptions } from '@/banner/types/banner-options';
 import { UserActivityDTO } from '@/common/dto/user-activity.dto';
 import { sum } from 'lodash';
 import { DiscordService } from '@/discord/discord.service';
+import { formatBytes } from '@/utils/formatBytes';
 
 @Injectable()
 export class BannerService {
@@ -89,6 +90,8 @@ export class BannerService {
     );
 
     const svg = canvas.toBuffer().toString();
+
+    console.log('svg length', formatBytes(svg.length));
 
     await this.cacheService.setBannerInCache(
       {

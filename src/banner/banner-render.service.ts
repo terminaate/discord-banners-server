@@ -65,6 +65,7 @@ export class BannerRenderService {
     }
 
     const userData: UserDataForCanvas = { user, activity };
+    // TODO: add user ability to choose height of banner
     const { height } = this.calculateHeight(userData);
 
     const canvas = new BaseCanvas(this.width, height, 'svg');
@@ -101,18 +102,22 @@ export class BannerRenderService {
   }
 
   private calculateHeight({ user, activity }: UserDataForCanvas) {
-    const heightCandidate = BannerDynamicHeights.find((o) =>
-      o.condition(user, activity),
-    );
-    let height = this.height;
-    let separator = true;
+    return BannerDynamicHeights[
+      Math.floor(Math.random() * BannerDynamicHeights.length)
+    ];
 
-    if (heightCandidate) {
-      height = heightCandidate.height;
-      separator = Boolean(heightCandidate.separator);
-    }
-
-    return { height, separator };
+    // const heightCandidate = BannerDynamicHeights.find((o) =>
+    //   o.condition(user, activity),
+    // );
+    // let height = this.height;
+    // let separator = true;
+    //
+    // if (heightCandidate) {
+    //   height = heightCandidate.height;
+    //   separator = Boolean(heightCandidate.separator);
+    // }
+    //
+    // return { height, separator };
   }
 }
 
@@ -293,6 +298,7 @@ class BannerStatus extends BaseBannerLayer {
   width?: number;
   height?: number;
 
+  // TODO: transform these into percentages
   backgroundRadius = 15;
   radius = 10;
 
@@ -334,6 +340,10 @@ class BannerUsername extends BaseBannerLayer {
   y: MeasurementUnit = '48%';
   x = BANNER_START_CONTENT_X;
 
+  secondaryY: MeasurementUnit = '53%';
+  secondaryFillStyle = BannerColors.THIRD_TEXT_COLOR;
+  secondaryFont = "13px 'ABCGintoNormal'";
+
   width?: MeasurementUnit;
   height?: MeasurementUnit;
 
@@ -345,8 +355,17 @@ class BannerUsername extends BaseBannerLayer {
   }
 
   render({ user }: UserDataForCanvas) {
-    const { username } = user;
+    const { username, globalName } = user;
 
+    const displayName = globalName ?? username;
+
+    this.drawUsername(displayName);
+    if (displayName !== username) {
+      this.drawSecondaryUsername(username);
+    }
+  }
+
+  private drawUsername(username: string) {
     this.canvas.fillStyle = this.fillStyle;
     this.canvas.font = this.font;
     this.canvas.fillText({
@@ -355,13 +374,23 @@ class BannerUsername extends BaseBannerLayer {
       y: this.y,
     });
   }
+
+  private drawSecondaryUsername(username: string) {
+    this.canvas.fillStyle = this.secondaryFillStyle;
+    this.canvas.font = this.secondaryFont;
+    this.canvas.fillText({
+      text: username,
+      x: this.x,
+      y: this.secondaryY,
+    });
+  }
 }
 
 class BannerPublicFlags extends BaseBannerLayer {
   x: MeasurementUnit = BANNER_START_CONTENT_X;
-  y: MeasurementUnit = '50%';
-  width = 20;
-  height = 20;
+  y: MeasurementUnit = '55%';
+  width = 24;
+  height = 24;
 
   margin = 2.5;
 
@@ -375,6 +404,11 @@ class BannerPublicFlags extends BaseBannerLayer {
       return;
     }
 
+    // nice hard code)
+    if (!user.globalName || user.globalName === user.username) {
+      this.y = '50%';
+    }
+
     const images = Object.values(
       pickBy(FlagsImages, (value, key) =>
         flags.includes(key as keyof typeof UserFlags),
@@ -382,7 +416,7 @@ class BannerPublicFlags extends BaseBannerLayer {
     );
 
     if (user.premiumSince) {
-      images.push(path.resolve(AssetsPath, 'icons/discordnitro.svg'));
+      images.push(path.resolve(AssetsPath, 'icons/flags/nitro.svg'));
     }
 
     let x = this.canvas.toPixelsX(this.x);

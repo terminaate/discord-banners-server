@@ -13,19 +13,23 @@ export const StatusColors: Record<PresenceStatus, string> = {
 
 export const AssetsPath = path.resolve(__dirname, '../../assets/');
 
-export const FlagsImages: Partial<Record<keyof typeof UserFlags, string>> = {
-  HypeSquadOnlineHouse1: path.resolve(AssetsPath, 'icons/hypesquadbravery.svg'),
-  HypeSquadOnlineHouse2: path.resolve(
-    AssetsPath,
-    'icons/hypesquadbrilliance.svg',
-  ),
-  HypeSquadOnlineHouse3: path.resolve(AssetsPath, 'icons/hypesquadbalance.svg'),
-  ActiveDeveloper: path.resolve(AssetsPath, 'icons/activedeveloper.svg'),
-  BugHunterLevel1: path.resolve(AssetsPath, 'icons/bughunterlevel1.svg'),
-  BugHunterLevel2: path.resolve(AssetsPath, 'icons/bughunterlevel2.svg'),
-  Partner: path.resolve(AssetsPath, 'icons/discordpartner.svg'),
-  Staff: path.resolve(AssetsPath, 'icons/discordstaff.svg'),
-};
+const SupportedFlagsImages: (keyof typeof UserFlags)[] = [
+  'HypeSquadOnlineHouse1',
+  'HypeSquadOnlineHouse2',
+  'HypeSquadOnlineHouse3',
+  'ActiveDeveloper',
+  'BugHunterLevel1',
+  'BugHunterLevel2',
+  'Partner',
+  'Staff',
+];
+
+export const FlagsImages: Partial<Record<keyof typeof UserFlags, string>> =
+  SupportedFlagsImages.reduce((acc, curr) => {
+    acc[curr] = path.resolve(AssetsPath, `icons/flags/${curr}.svg`);
+
+    return acc;
+  }, {});
 
 export const ActivitiesText: Partial<Record<ActivityType, string>> = {
   [ActivityType.Playing]: 'PLAYING A GAME',

@@ -5,6 +5,7 @@ const DEFAULT_ACCENT_COLOR = '#f1c40f';
 export class UserDTO {
   id: string;
   username: string;
+  globalName: string | null;
   avatar: string;
   banner?: string | null;
   status?: string | null;
@@ -22,7 +23,8 @@ export class UserDTO {
         : '#000';
 
     this.id = member.id;
-    this.username = member.user.globalName ?? member.user.tag.toLowerCase();
+    this.username = member.user.tag.toLowerCase();
+    this.globalName = member.user.globalName;
     this.avatar = member.displayAvatarURL({ size: 256, extension: 'png' });
     this.banner = member.user.bannerURL({ size: 1024, extension: 'png' });
     this.status = member.presence?.status ?? 'offline';
