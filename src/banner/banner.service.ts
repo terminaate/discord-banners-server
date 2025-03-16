@@ -68,6 +68,8 @@ export class BannerService {
     return { averageTime, values };
   }
 
+  // TODO: add statistics of rendered banners
+
   async renderBanner(
     member: GuildMember,
     activities?: Activity[],

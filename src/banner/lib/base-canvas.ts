@@ -16,7 +16,6 @@ type RoundRectOpts = Coords & {
   radius: BorderRadius;
   fill?: boolean;
   stroke?: boolean;
-  relativeToHeight?: boolean;
 };
 
 type RoundImageOpts = Coords & {
@@ -24,7 +23,6 @@ type RoundImageOpts = Coords & {
   width?: MeasurementUnit;
   height?: MeasurementUnit;
   radius: BorderRadius;
-  relativeToHeight?: boolean;
 };
 
 type DrawImageOpts = Coords & {
@@ -42,12 +40,10 @@ type DrawImageOpts = Coords & {
 type FillRectOpts = Coords & {
   width: MeasurementUnit;
   height: MeasurementUnit;
-  relativeToHeight?: boolean;
 };
 
 type FillCircleOpts = Coords & {
   radius: number;
-  relativeToHeight?: boolean;
   fill?: boolean;
   stroke?: boolean;
 };
@@ -55,7 +51,6 @@ type FillCircleOpts = Coords & {
 type FillTextOpts = Coords & {
   text: string;
   maxWidth?: number;
-  relativeToHeight?: boolean;
 };
 
 const mimeTypeMap: { [key: string]: string } = {
@@ -84,6 +79,10 @@ export class BaseCanvas extends Canvas {
     this.ctx.fillStyle = newValue;
   }
 
+  set strokeStyle(newValue: string | CanvasGradient | CanvasPattern) {
+    this.ctx.strokeStyle = newValue;
+  }
+
   set font(newValue: string) {
     this.ctx.font = newValue;
   }
@@ -94,15 +93,7 @@ export class BaseCanvas extends Canvas {
     return await this.createImageFromBuffer(base64);
   }
 
-  roundImage({
-    x,
-    y,
-    relativeToHeight,
-    height,
-    width,
-    radius,
-    image,
-  }: RoundImageOpts) {
+  roundImage({ x, y, height, width, radius, image }: RoundImageOpts) {
     x = this.toPixelsX(x);
     y = this.toPixelsY(y);
     if (width) {
@@ -110,10 +101,6 @@ export class BaseCanvas extends Canvas {
     }
     if (height) {
       height = this.toPixelsY(height);
-    }
-
-    if (relativeToHeight) {
-      y = y * this.heightScale;
     }
 
     const radiusObject = this.getBorderRadiusObject(radius);
@@ -180,7 +167,6 @@ export class BaseCanvas extends Canvas {
     y,
     height,
     width,
-    relativeToHeight,
     stroke = false,
     fill = true,
     radius = 5,
@@ -195,10 +181,6 @@ export class BaseCanvas extends Canvas {
     }
 
     const radiusObject = this.getBorderRadiusObject(radius);
-
-    if (relativeToHeight) {
-      y = y * this.heightScale;
-    }
 
     this.ctx.beginPath();
     this.ctx.moveTo(x + radiusObject.tl, y);
@@ -224,7 +206,7 @@ export class BaseCanvas extends Canvas {
     }
   }
 
-  fillRect({ x, y, width, height, relativeToHeight }: FillRectOpts) {
+  fillRect({ x, y, width, height }: FillRectOpts) {
     x = this.toPixelsX(x);
     y = this.toPixelsY(y);
     if (width) {
@@ -234,27 +216,12 @@ export class BaseCanvas extends Canvas {
       height = this.toPixelsY(height);
     }
 
-    if (relativeToHeight) {
-      y = y * this.heightScale;
-    }
-
     this.ctx.fillRect(x, y, width, height);
   }
 
-  fillCircle({
-    x,
-    y,
-    radius,
-    relativeToHeight,
-    fill = true,
-    stroke = false,
-  }: FillCircleOpts) {
+  fillCircle({ x, y, radius, fill = true, stroke = false }: FillCircleOpts) {
     x = this.toPixelsX(x);
     y = this.toPixelsY(y);
-
-    if (relativeToHeight) {
-      y = y * this.heightScale;
-    }
 
     this.ctx.beginPath();
     this.ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
@@ -269,13 +236,9 @@ export class BaseCanvas extends Canvas {
     }
   }
 
-  fillText({ text, x, y, relativeToHeight, maxWidth }: FillTextOpts) {
+  fillText({ text, x, y, maxWidth }: FillTextOpts) {
     x = this.toPixelsX(x);
     y = this.toPixelsY(y);
-
-    if (relativeToHeight) {
-      y = y * this.heightScale;
-    }
 
     this.ctx.fillText(text, x, y, maxWidth);
   }

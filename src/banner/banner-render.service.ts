@@ -65,7 +65,7 @@ export class BannerRenderService {
     }
 
     const userData: UserDataForCanvas = { user, activity };
-    const { height, separator } = this.calculateHeight(userData);
+    const { height } = this.calculateHeight(userData);
 
     const canvas = new BaseCanvas(this.width, height, 'svg');
 
@@ -239,8 +239,10 @@ class BannerAvatar extends BaseBannerLayer {
       url: user.avatar,
       x: this.canvas.toPixelsX(this.x) - size / 2,
       y: this.canvas.toPixelsY(this.y) - size / 2,
-      width: size,
-      height: size,
+      scale: (img) => ({
+        scaleX: size / img.naturalWidth,
+        scaleY: size / img.naturalHeight,
+      }),
     });
 
     this.canvas.ctx.restore();
@@ -383,9 +385,16 @@ class BannerPublicFlags extends BaseBannerLayer {
       images.push(path.resolve(AssetsPath, 'icons/discordnitro.svg'));
     }
 
-    // TODO: add background
-
     let x = this.canvas.toPixelsX(this.x);
+
+    this.canvas.fillStyle = '#222';
+    this.canvas.roundRect({
+      x: this.x,
+      y: this.y,
+      width: (this.width + this.margin) * images.length - this.margin,
+      height: this.height,
+      radius: 4.5,
+    });
 
     for (const flagImage of images) {
       await this.canvas.drawImage({
@@ -453,7 +462,6 @@ class BannerActivity extends BaseBannerLayer {
       text: ActivitiesText[activityType] as string,
       x: this.x,
       y: this.y,
-      relativeToHeight: true,
     });
   }
 
@@ -486,7 +494,6 @@ class BannerActivity extends BaseBannerLayer {
       text: activityName,
       x: this.activityNameX,
       y: this.activityNameY,
-      relativeToHeight: true,
     });
   }
 
@@ -520,7 +527,6 @@ class BannerActivity extends BaseBannerLayer {
       text: timeText,
       x: this.activityStartTimeX,
       y: this.activityStartTimeY,
-      relativeToHeight: true,
     });
   }
 }
@@ -581,7 +587,6 @@ class BannerSeparator extends BaseBannerLayer {
       y: this.y,
       width: this.width,
       height: this.height,
-      relativeToHeight: true,
     });
   }
 }
