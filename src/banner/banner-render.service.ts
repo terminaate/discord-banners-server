@@ -421,7 +421,7 @@ class BannerPublicFlags extends BaseBannerLayer {
 
     let x = this.canvas.toPixelsX(this.x);
 
-    this.canvas.fillStyle = '#222';
+    this.canvas.fillStyle = BannerColors.SECONDARY_BACKGROUND_COLOR;
     this.canvas.roundRect({
       x: this.x,
       y: this.y,

@@ -41,6 +41,7 @@ export const ActivitiesText: Partial<Record<ActivityType, string>> = {
 export const BannerColors = {
   DEFAULT_ACCENT_COLOR: '#fff',
   INFO_BACKGROUND_COLOR: '#18191C',
+  SECONDARY_BACKGROUND_COLOR: '#222',
   BASE_TEXT_COLOR: '#fff',
   SECOND_TEXT_COLOR: '#B9BBBE',
   THIRD_TEXT_COLOR: '#B2B2B4',
