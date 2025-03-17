@@ -544,30 +544,39 @@ class BannerActivities extends BaseBannerLayer {
       activityImageURL === defaultActivityImageURL,
     );
 
-    this.canvas.ctx.save();
+    console.log(activityImage.naturalWidth, this.activityImageSize);
 
-    this.canvas.roundRect({
-      x,
-      y,
-      height: this.activityImageSize,
-      width: this.activityImageSize,
-      radius: this.activityImageRadius,
-      fill: false,
-      stroke: false,
-    });
-    this.canvas.ctx.clip();
-    // todo: center this image relatively to
     await this.canvas.drawImage({
-      x,
+      x: x - (this.activityImageSize - activityImage.naturalHeight) / 2,
       y,
       image: activityImage,
+      radius: this.activityImageRadius,
       scale: (img) => ({
         scaleX: this.activityImageSize / img.naturalHeight,
         scaleY: this.activityImageSize / img.naturalHeight,
       }),
     });
 
-    this.canvas.ctx.restore();
+    // this.canvas.ctx.save();
+    //
+    // this.canvas.roundRect({
+    //   x,
+    //   y,
+    //   height: this.activityImageSize,
+    //   width: this.activityImageSize,
+    //   radius: this.activityImageRadius,
+    //   fill: false,
+    //   stroke: false,
+    // });
+    // this.canvas.ctx.clip();
+    // // todo: center this image relatively to
+    // await this.canvas.drawImage({
+    //   x: x - activityImage.naturalWidth / 2,
+    //   y,
+    //   image: activityImage,
+    // });
+    //
+    // this.canvas.ctx.restore();
   }
 
   private drawActivityInfo() {

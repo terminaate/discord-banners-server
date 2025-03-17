@@ -5,6 +5,7 @@ export class UserActivityDTO {
   name: string;
   state: string | null;
   createTimestamp: Date;
+  details: string | null;
   largeImageURL?: string | null;
   startTimestamp?: Date | null;
   endTimestamp?: Date | null;
@@ -17,6 +18,6 @@ export class UserActivityDTO {
     this.createTimestamp = new Date(activity.createdTimestamp);
     this.state = activity.state;
     this.largeImageURL = activity.assets?.largeImageURL({ size: 128 });
-    // activity;
+    this.details = activity.details;
   }
 }

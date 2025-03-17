@@ -2,6 +2,7 @@ import { ActivityType, PresenceStatus, UserFlags } from 'discord.js';
 import * as path from 'path';
 import { BannerDynamicHeight } from '@/banner/types/banner-dynamic-height';
 import { MeasurementUnit } from '@/banner/lib/base-canvas';
+import ms from 'ms';
 
 export const StatusColors: Record<PresenceStatus, string> = {
   online: '#3BA55D',
@@ -51,6 +52,8 @@ export const BANNER_DEFAULT_WIDTH = 300;
 export const BANNER_COMPACT_WIDTH = 600;
 export const BANNER_DEFAULT_HEIGHT = 516;
 export const BANNER_START_CONTENT_X: MeasurementUnit = '5%';
+
+export const BANNER_USER_IMAGES_CACHE_TTL = ms('2m');
 
 export const BannerDynamicHeights: BannerDynamicHeight[] = [
   {

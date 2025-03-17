@@ -2,6 +2,7 @@ import { BorderRadius, BorderRadiusObject } from '@/banner/types/border-radius';
 import { Canvas, CanvasRenderingContext2D, Image } from 'canvas';
 import * as fs from 'fs/promises';
 import axios from 'axios';
+import { createCache } from 'cache-manager';
 
 export type MeasurementUnit = number | `${number}%`;
 
@@ -47,6 +48,7 @@ type DrawImageOpts = Coords & {
     scaleX?: number;
     scaleY?: number;
   };
+  cacheTTL?: number;
   translate?: boolean;
   width?: MeasurementUnit;
   height?: MeasurementUnit;
@@ -78,7 +80,7 @@ const mimeTypeMap: { [key: string]: string } = {
 };
 
 // TODO: turn it to cache-manager instance with ttl
-const imagesCache = new Map<string, string>();
+const imagesCache = createCache();
 
 // TODO: maybe move this to separated module?
 export class BaseCanvas extends Canvas {
@@ -102,8 +104,8 @@ export class BaseCanvas extends Canvas {
     this.ctx.font = typeof newValue === 'object' ? newValue.value : newValue;
   }
 
-  async createImage(url: string, local = false) {
-    const base64 = await this.loadImageBase64(url, local);
+  async createImage(url: string, local = false, cacheTTL?: number) {
+    const base64 = await this.loadImageBase64(url, local, cacheTTL);
 
     return await this.createImageFromBuffer(base64);
   }
@@ -118,6 +120,7 @@ export class BaseCanvas extends Canvas {
     local = false,
     scale,
     translate = !!scale,
+    cacheTTL,
     radius,
   }: DrawImageOpts) {
     x = this.toPixelsX(x);
@@ -129,7 +132,8 @@ export class BaseCanvas extends Canvas {
       height = this.toPixelsY(height);
     }
 
-    const image = originalImage ?? (await this.createImage(url!, local));
+    const image =
+      originalImage ?? (await this.createImage(url!, local, cacheTTL));
     const radiusObject = radius ? this.getBorderRadiusObject(radius) : null;
 
     width ??= image.naturalWidth;
@@ -298,9 +302,10 @@ export class BaseCanvas extends Canvas {
     });
   }
 
-  private async loadImageBase64(url: string, local = false) {
-    if (imagesCache.has(url)) {
-      return imagesCache.get(url) as string;
+  private async loadImageBase64(url: string, local = false, cacheTTL?: number) {
+    const candidate = await imagesCache.get<string>(url);
+    if (candidate) {
+      return candidate;
     }
 
     let base64: string;
@@ -328,7 +333,7 @@ export class BaseCanvas extends Canvas {
       base64 = `data:${contentType};base64,${data.toString('base64')}`;
     }
 
-    imagesCache.set(url, base64);
+    void imagesCache.set(url, base64, cacheTTL);
 
     return base64;
   }

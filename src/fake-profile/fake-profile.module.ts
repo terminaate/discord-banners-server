@@ -6,6 +6,7 @@ import { AvatarDecorationsService } from '@/fake-profile/avatar-decorations.serv
 import { ProfileEffectsService } from '@/fake-profile/profile-effects.service';
 import { CacheModule } from '@nestjs/cache-manager';
 import { FakeProfileController } from '@/fake-profile/fake-profile.controller';
+import ms from 'ms';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { FakeProfileController } from '@/fake-profile/fake-profile.controller';
         return { baseURL: configService.get('FAKE_PROFILE_API') as string };
       },
     }),
-    CacheModule.register({ ttl: 2 * 60 * 1000 }),
+    CacheModule.register({ ttl: ms('2m') }),
   ],
   controllers: [FakeProfileController],
   providers: [
