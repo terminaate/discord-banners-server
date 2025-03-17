@@ -177,13 +177,6 @@ class BannerProfileEffect extends BaseBannerLayer {
   width: number;
   height: number;
 
-  constructor(canvas: BaseCanvas) {
-    super(canvas);
-
-    this.width = canvas.width;
-    this.height = canvas.height;
-  }
-
   async render({ user }: UserDataForCanvas) {
     if (!user.profileEffect) {
       return;
@@ -198,6 +191,11 @@ class BannerProfileEffect extends BaseBannerLayer {
         scaleY: this.width / img.naturalWidth,
       }),
     });
+  }
+
+  protected beforeRender(): Promise<void> | void {
+    this.width = this.canvas.width;
+    this.height = this.canvas.height;
   }
 }
 
