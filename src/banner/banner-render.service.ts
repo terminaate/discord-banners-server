@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { registerFont } from 'canvas';
 import * as path from 'path';
 import {
@@ -26,6 +26,8 @@ import { getFontInfo } from '@/banner/lib/get-font-info';
 
 @Injectable()
 export class BannerRenderService {
+  private readonly logger = new Logger(BannerRenderService.name);
+
   private readonly width = BANNER_DEFAULT_WIDTH;
   private readonly height = BANNER_DEFAULT_HEIGHT;
   private readonly borderRadius: BorderRadius = 15;
@@ -49,6 +51,8 @@ export class BannerRenderService {
     activities: UserActivityDTO[] = [],
     bannerOptions?: BannerOptions,
   ) {
+    const startTime = Date.now();
+
     if (user.profileEffect) {
       user.profileEffect = this.profileEffectsService.getProfileEffectURL(
         user.profileEffect,
@@ -96,6 +100,10 @@ export class BannerRenderService {
     for (const layer of layers) {
       await layer?.create(userData, bannerOptions);
     }
+
+    const endTime = Date.now();
+
+    this.logger.log(`Time to render a banner spend - ${endTime - startTime}`);
 
     return canvas;
   }
@@ -542,44 +550,37 @@ class BannerActivities extends BaseBannerLayer {
       activityImageURL === defaultActivityImageURL,
     );
 
-    console.log(activityImage.naturalWidth, this.activityImageSize);
+    this.canvas.ctx.save();
+
+    this.canvas.roundRect({
+      x,
+      y,
+      width: this.activityImageSize,
+      height: this.activityImageSize,
+      fill: false,
+      stroke: false,
+      radius: this.activityImageRadius,
+    });
+    this.canvas.ctx.clip();
+
+    const imageAspectRatio =
+      activityImage.naturalWidth / activityImage.naturalHeight;
 
     await this.canvas.drawImage({
-      x: x - (this.activityImageSize - activityImage.naturalHeight) / 2,
+      // TODO: I SWEAR I DON'T KNOW THIS THING WORKS
+      x: imageAspectRatio === 1 ? x : x - this.activityImageSize / 2,
       y,
       image: activityImage,
-      radius: this.activityImageRadius,
       scale: (img) => ({
         scaleX: this.activityImageSize / img.naturalHeight,
         scaleY: this.activityImageSize / img.naturalHeight,
       }),
     });
 
-    // this.canvas.ctx.save();
-    //
-    // this.canvas.roundRect({
-    //   x,
-    //   y,
-    //   height: this.activityImageSize,
-    //   width: this.activityImageSize,
-    //   radius: this.activityImageRadius,
-    //   fill: false,
-    //   stroke: false,
-    // });
-    // this.canvas.ctx.clip();
-    // // todo: center this image relatively to
-    // await this.canvas.drawImage({
-    //   x: x - activityImage.naturalWidth / 2,
-    //   y,
-    //   image: activityImage,
-    // });
-    //
-    // this.canvas.ctx.restore();
+    this.canvas.ctx.restore();
   }
 
   private drawActivityInfo() {
-    console.log(this.currentActivity);
-
     const font = getFontInfo(10, 'ABCGintoNormal');
     const marginLeft = 10;
 

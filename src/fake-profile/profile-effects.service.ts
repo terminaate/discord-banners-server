@@ -23,8 +23,6 @@ export class ProfileEffectsService {
       return;
     }
 
-    console.log('is animated', animated);
-
     return animated
       ? profileEffectObject.config.effects[0].src
       : profileEffectObject.config.reducedMotionSrc;

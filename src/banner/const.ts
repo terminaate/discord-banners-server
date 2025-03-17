@@ -76,7 +76,7 @@ export const BannerDynamicHeights: BannerDynamicHeight[] = [
 
       return !customStatus && !!activities.length && activities.length <= 1;
     },
-    height: 320,
+    height: 330,
   },
   {
     condition(user, activities) {
