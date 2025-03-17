@@ -47,7 +47,7 @@ export const BannerColors = {
   THIRD_TEXT_COLOR: '#B2B2B4',
 };
 
-export const BANNER_DEFAULT_WIDTH = 350;
+export const BANNER_DEFAULT_WIDTH = 300;
 export const BANNER_COMPACT_WIDTH = 600;
 export const BANNER_DEFAULT_HEIGHT = 516;
 export const BANNER_START_CONTENT_X: MeasurementUnit = '5%';
@@ -58,14 +58,14 @@ export const BannerDynamicHeights: BannerDynamicHeight[] = [
       const { customStatus } = user;
       return !!customStatus && !activities.length;
     },
-    height: 330,
+    height: 250,
   },
   {
     condition(user, activities) {
       const { customStatus } = user;
       return !customStatus && !activities.length;
     },
-    height: 320,
+    height: 250,
   },
   {
     condition(user, activities) {

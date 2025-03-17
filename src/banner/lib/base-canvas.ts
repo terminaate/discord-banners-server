@@ -5,6 +5,14 @@ import axios from 'axios';
 
 export type MeasurementUnit = number | `${number}%`;
 
+export type FontFamily = 'Whitney' | 'ABCGintoNormal';
+
+export type FontInfo = {
+  size: number;
+  family: FontFamily;
+  value: string;
+};
+
 type Coords = {
   x: MeasurementUnit;
   y: MeasurementUnit;
@@ -18,18 +26,18 @@ type RoundRectOpts = Coords & {
   stroke?: boolean;
 };
 
-type RoundImageOpts = Coords & {
-  url?: string;
-  local?: boolean;
-  image?: Image;
-  scale?: (image: Image) => {
-    scaleX?: number;
-    scaleY?: number;
-  };
-  width?: MeasurementUnit;
-  height?: MeasurementUnit;
-  radius: BorderRadius;
-};
+// type RoundImageOpts = Coords & {
+//   url?: string;
+//   local?: boolean;
+//   image?: Image;
+//   scale?: (image: Image) => {
+//     scaleX?: number;
+//     scaleY?: number;
+//   };
+//   width?: MeasurementUnit;
+//   height?: MeasurementUnit;
+//   radius: BorderRadius;
+// };
 
 type DrawImageOpts = Coords & {
   url?: string;
@@ -39,6 +47,7 @@ type DrawImageOpts = Coords & {
     scaleX?: number;
     scaleY?: number;
   };
+  translate?: boolean;
   width?: MeasurementUnit;
   height?: MeasurementUnit;
   radius?: BorderRadius;
@@ -89,8 +98,8 @@ export class BaseCanvas extends Canvas {
     this.ctx.strokeStyle = newValue;
   }
 
-  set font(newValue: string) {
-    this.ctx.font = newValue;
+  set font(newValue: FontInfo | string) {
+    this.ctx.font = typeof newValue === 'object' ? newValue.value : newValue;
   }
 
   async createImage(url: string, local = false) {
@@ -108,6 +117,7 @@ export class BaseCanvas extends Canvas {
     image: originalImage,
     local = false,
     scale,
+    translate = !!scale,
     radius,
   }: DrawImageOpts) {
     x = this.toPixelsX(x);
@@ -137,12 +147,15 @@ export class BaseCanvas extends Canvas {
         this.ctx.closePath();
         this.ctx.clip();
       }
-      this.ctx.translate(x, y);
+      if (translate) {
+        this.ctx.translate(x, y);
+      }
+
       this.ctx.scale(
         scaleX ?? width / image.naturalWidth,
         scaleY ?? height / image.naturalHeight,
       );
-      this.ctx.drawImage(image, 0, 0);
+      this.ctx.drawImage(image, translate ? 0 : x, translate ? 0 : y);
 
       this.ctx.restore();
     } else {

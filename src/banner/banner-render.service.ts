@@ -22,12 +22,13 @@ import { ProfileEffectsService } from '@/fake-profile/profile-effects.service';
 import { AvatarDecorationsService } from '@/fake-profile/avatar-decorations.service';
 import { UserFlags } from 'discord.js';
 import { pickBy } from 'lodash';
+import { getFontInfo } from '@/banner/lib/get-font-info';
 
 @Injectable()
 export class BannerRenderService {
   private readonly width = BANNER_DEFAULT_WIDTH;
   private readonly height = BANNER_DEFAULT_HEIGHT;
-  private readonly borderRadius: BorderRadius = 20;
+  private readonly borderRadius: BorderRadius = 15;
 
   constructor(
     private profileEffectsService: ProfileEffectsService,
@@ -36,7 +37,6 @@ export class BannerRenderService {
     registerFont(path.resolve(AssetsPath, 'fonts/ABCGintoNormal.otf'), {
       family: 'ABCGintoNormal',
       style: 'normal',
-      weight: '700',
     });
     registerFont(path.resolve(AssetsPath, 'fonts/Whitney.otf'), {
       family: 'Whitney',
@@ -64,7 +64,7 @@ export class BannerRenderService {
     }
 
     const userData: UserDataForCanvas = { user, activities };
-    // TODO: add user ability to choose height of banner
+    // TODO: add user ability to choose height of banner, add scale parameter
     const { height } = this.calculateHeight(userData);
 
     const canvas = new BaseCanvas(this.width, height, 'svg');
@@ -119,7 +119,7 @@ export class BannerRenderService {
 class BannerBackground extends BaseBannerLayer {
   x = 0;
   y = 0;
-  height: MeasurementUnit = '25%';
+  height: MeasurementUnit = '32%';
   width!: number;
 
   infoHeight: MeasurementUnit = '75%';
@@ -129,13 +129,20 @@ class BannerBackground extends BaseBannerLayer {
     const accentColor = user.accentColor;
 
     if (userBannerURL) {
+      const backgroundImage = await this.canvas.createImage(userBannerURL);
+
+      const scaleX = this.width / backgroundImage.naturalWidth;
+
       await this.canvas.drawImage({
-        url: userBannerURL,
+        image: backgroundImage,
+        translate: false,
         x: this.x,
-        y: this.y,
-        scale: (img) => ({
-          scaleX: this.width / img.naturalWidth,
-          scaleY: this.width / img.naturalWidth,
+        y:
+          (this.canvas.toPixelsY(this.height) - backgroundImage.naturalHeight) /
+          2,
+        scale: () => ({
+          scaleX,
+          scaleY: scaleX,
         }),
       });
     } else {
@@ -196,7 +203,7 @@ class BannerProfileEffect extends BaseBannerLayer {
 
 class BannerAvatar extends BaseBannerLayer {
   x: MeasurementUnit = '18%';
-  y: MeasurementUnit = '26%';
+  y: MeasurementUnit = '35%';
 
   width: MeasurementUnit = '25%';
   height: MeasurementUnit = '50%';
@@ -341,15 +348,13 @@ class BannerUsername extends BaseBannerLayer {
   x = BANNER_START_CONTENT_X;
 
   secondaryFillStyle = BannerColors.THIRD_TEXT_COLOR;
-  secondaryFontSize = 13;
-  secondaryFont = "13px 'ABCGintoNormal'";
+  secondaryFont = getFontInfo(13, 'ABCGintoNormal');
 
   width?: MeasurementUnit;
   height?: MeasurementUnit;
 
   fillStyle = BannerColors.BASE_TEXT_COLOR;
-  font = "20px 'ABCGintoNormal'";
-  fontSize = 20;
+  font = getFontInfo(20, 'ABCGintoNormal');
 
   render({ user }: UserDataForCanvas) {
     const { username, globalName } = user;
@@ -370,9 +375,9 @@ class BannerUsername extends BaseBannerLayer {
       this.canvas.toPixelsY(avatarLayer.backgroundHeight),
     );
 
-    this.y = this.canvas.toPixelsY(avatarLayer.y) + this.fontSize + size / 2;
+    this.y = this.canvas.toPixelsY(avatarLayer.y) + this.font.size + size / 2;
     this.height =
-      this.fontSize + (user.globalName ? this.secondaryFontSize : 0);
+      this.font.size + (user.globalName ? this.secondaryFont.size : 0);
   }
 
   private drawUsername(username: string) {
@@ -386,7 +391,7 @@ class BannerUsername extends BaseBannerLayer {
   }
 
   private drawSecondaryUsername(username: string) {
-    const y = this.canvas.toPixelsY(this.y) + this.fontSize;
+    const y = this.canvas.toPixelsY(this.y) + this.font.size;
 
     this.canvas.fillStyle = this.secondaryFillStyle;
     this.canvas.font = this.secondaryFont;
@@ -411,11 +416,6 @@ class BannerPublicFlags extends BaseBannerLayer {
     if (!flags || !flags.length) {
       return;
     }
-
-    // // TODO: nice hard code)
-    // if (!user.globalName || user.globalName === user.username) {
-    //   this.y = '50%';
-    // }
 
     const images = Object.values(
       pickBy(FlagsImages, (value, key) =>
@@ -464,12 +464,12 @@ class BannerPublicFlags extends BaseBannerLayer {
     // todo? refactor?
 
     const zeroY =
-      this.canvas.toPixelsY(usernameLayer.y) - usernameLayer.fontSize;
+      this.canvas.toPixelsY(usernameLayer.y) - usernameLayer.font.size;
 
     this.y =
       zeroY +
       this.canvas.toPixelsY(usernameLayer.height!) +
-      usernameLayer.secondaryFontSize;
+      usernameLayer.secondaryFont.size;
   }
 }
 
@@ -479,9 +479,12 @@ class BannerActivities extends BaseBannerLayer {
 
   activityWidth: MeasurementUnit = '90%';
   activityHeight: MeasurementUnit = 80;
-  activityBorderRadius: BorderRadius = 10;
+  activityRadius: number = 10;
   activityPadding = 10;
+
   activityImageSize = 60;
+  activityImageRadius = 5;
+
   currentActivity: UserActivityDTO;
   currentActivityY: number;
 
@@ -502,10 +505,7 @@ class BannerActivities extends BaseBannerLayer {
     }
   }
 
-  protected beforeRender(
-    userData: UserDataForCanvas,
-    bannerOptions?: BannerOptions,
-  ): Promise<void> | void {
+  protected beforeRender() {
     const publicFlagsLayer = this.getRenderedLayer<BannerPublicFlags>(
       BannerPublicFlags.name,
     );
@@ -525,13 +525,13 @@ class BannerActivities extends BaseBannerLayer {
       y: this.currentActivityY,
       height: this.activityHeight,
       width: this.activityWidth,
-      radius: this.activityBorderRadius,
+      radius: this.activityRadius,
     });
   }
 
   private async drawActivityImage() {
-    const x = this.canvas.toPixelsX(this.x) + 10;
-    const y = this.currentActivityY + 10;
+    const x = this.canvas.toPixelsX(this.x) + this.activityPadding;
+    const y = this.currentActivityY + this.activityPadding;
 
     const defaultActivityImageURL = path.resolve(
       AssetsPath,
@@ -546,14 +546,12 @@ class BannerActivities extends BaseBannerLayer {
 
     this.canvas.ctx.save();
 
-    console.log(activityImage.naturalWidth, this.activityImageSize);
-
     this.canvas.roundRect({
       x,
       y,
       height: this.activityImageSize,
       width: this.activityImageSize,
-      radius: this.activityBorderRadius,
+      radius: this.activityImageRadius,
       fill: false,
       stroke: false,
     });
@@ -572,9 +570,32 @@ class BannerActivities extends BaseBannerLayer {
     this.canvas.ctx.restore();
   }
 
+  private drawActivityInfo() {
+    console.log(this.currentActivity);
+
+    const font = getFontInfo(10, 'ABCGintoNormal');
+    const marginLeft = 10;
+
+    const x =
+      this.canvas.toPixelsX(this.x) +
+      this.activityPadding +
+      this.activityImageSize +
+      marginLeft;
+    const y = this.currentActivityY + this.activityPadding + font.size;
+
+    this.canvas.fillStyle = BannerColors.BASE_TEXT_COLOR;
+    this.canvas.font = font;
+    this.canvas.fillText({
+      text: 'Hello world',
+      x,
+      y,
+    });
+  }
+
   private async drawActivity() {
     this.drawActivityBackground();
     await this.drawActivityImage();
+    this.drawActivityInfo();
   }
 }
 
