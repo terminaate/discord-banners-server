@@ -5,12 +5,15 @@ import {
   BANNER_START_CONTENT_X,
   BannerColors,
 } from '@/banner/const';
-import { BaseCanvas, MeasurementUnit } from '@/banner/lib/base-canvas';
+import {
+  BaseCanvas,
+  FontInfo,
+  MeasurementUnit,
+} from '@/banner/lib/base-canvas';
 import { UserActivityDTO } from '@/common/dto/user-activity.dto';
 import { UserDataForCanvas } from '@/banner/types/user-data-for-canvas';
 import { BannerPublicFlags } from '@/banner/layers/banner-public-flags';
 import * as path from 'node:path';
-import { getFontInfo } from '@/banner/lib/get-font-info';
 import { ActivityType } from 'discord.js';
 
 class BannerActivity {
@@ -21,6 +24,8 @@ class BannerActivity {
 
   imageSize = 60;
   imageRadius = 5;
+
+  font = new FontInfo(10, 'ABCGintoNormal');
 
   constructor(
     private activity: UserActivityDTO,
@@ -37,16 +42,15 @@ class BannerActivity {
   }
 
   private drawType() {
-    const font = getFontInfo(10, 'ABCGintoNormal');
     const text = ActivitiesText[this.activity.type];
     if (!text) {
       return;
     }
 
     const x = this.canvas.toPixelsX(this.x) + this.padding;
-    const y = this.canvas.toPixelsY(this.y) + font.size + this.padding / 2;
+    const y = this.canvas.toPixelsY(this.y) + this.font.size + this.padding / 2;
 
-    this.canvas.font = font;
+    this.canvas.font = this.font;
     this.canvas.fillStyle = BannerColors.SECOND_TEXT_COLOR;
     this.canvas.fillText({
       text,
@@ -58,7 +62,7 @@ class BannerActivity {
   private drawListeningInfo() {}
 
   private drawDefaultInfo() {
-    const font = getFontInfo(10, 'ABCGintoNormal');
+    const font = new FontInfo(10, 'ABCGintoNormal');
     const marginLeft = 5;
 
     const x =
@@ -111,17 +115,6 @@ class BannerActivity {
         break;
       }
     }
-
-    // const font = getFontInfo(10, 'ABCGintoNormal');
-    //
-    //
-    // this.canvas.fillStyle = BannerColors.BASE_TEXT_COLOR;
-    // this.canvas.font = font;
-    // this.canvas.fillText({
-    //   text: this.activity.details!,
-    //   x,
-    //   y,
-    // });
   }
 
   private async drawImage() {

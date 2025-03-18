@@ -8,11 +8,42 @@ export type MeasurementUnit = number | `${number}%`;
 
 export type FontFamily = 'Whitney' | 'ABCGintoNormal';
 
-export type FontInfo = {
-  size: number;
-  family: FontFamily;
+export class FontInfo {
   value: string;
-};
+
+  constructor(
+    private _fontSize: number,
+    private _fontFamily: FontFamily,
+  ) {
+    this.generateValue();
+  }
+
+  get family() {
+    return this._fontFamily;
+  }
+
+  set family(newValue: FontFamily) {
+    this._fontFamily = newValue;
+    this.generateValue();
+  }
+
+  get size() {
+    return this._fontSize;
+  }
+
+  set size(newValue: number) {
+    this._fontSize = newValue;
+    this.generateValue();
+  }
+
+  valueOf() {
+    return this.value;
+  }
+
+  private generateValue() {
+    this.value = `${this.size}px ${this.family}`;
+  }
+}
 
 type Coords = {
   x: MeasurementUnit;
@@ -79,7 +110,17 @@ const mimeTypeMap: { [key: string]: string } = {
   svg: 'image/svg+xml',
 };
 
-// TODO: turn it to cache-manager instance with ttl
+// TODO: add smart caching with with type smth like that -
+
+// type CacheStore = {
+//   [cacheId: string]: {
+//     [cacheProperty: string]: {
+//       url: string;
+//       data: string;
+//     };
+//   };
+// };
+
 const imagesCache = createCache();
 
 // TODO: maybe move this to separated module?

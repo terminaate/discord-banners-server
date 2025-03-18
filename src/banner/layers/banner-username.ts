@@ -1,7 +1,6 @@
 import { BaseBannerLayer } from '@/banner/lib/base-banner-layer';
-import { MeasurementUnit } from '@/banner/lib/base-canvas';
+import { FontInfo, MeasurementUnit } from '@/banner/lib/base-canvas';
 import { BANNER_START_CONTENT_X, BannerColors } from '@/banner/const';
-import { getFontInfo } from '@/banner/lib/get-font-info';
 import { UserDataForCanvas } from '@/banner/types/user-data-for-canvas';
 import { BannerAvatar } from '@/banner/layers/banner-avatar';
 
@@ -10,13 +9,13 @@ export class BannerUsername extends BaseBannerLayer {
   x = BANNER_START_CONTENT_X;
 
   secondaryFillStyle = BannerColors.THIRD_TEXT_COLOR;
-  secondaryFont = getFontInfo(13, 'ABCGintoNormal');
+  secondaryFont = new FontInfo(13, 'ABCGintoNormal');
 
   width?: MeasurementUnit;
   height!: MeasurementUnit;
 
   fillStyle = BannerColors.BASE_TEXT_COLOR;
-  font = getFontInfo(20, 'ABCGintoNormal');
+  font = new FontInfo(20, 'ABCGintoNormal');
 
   render({ user }: UserDataForCanvas) {
     const { username, globalName } = user;

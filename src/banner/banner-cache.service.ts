@@ -41,6 +41,8 @@ type GetFromCacheOpts = {
   overwrites?: Partial<Record<keyof UserDTO, string>>;
 };
 
+// TODO: maybe storing kilobytes of images in redis not the best idea
+
 @Injectable()
 export class BannerCacheService {
   private readonly logger = new Logger(BannerCacheService.name);
