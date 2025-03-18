@@ -1,7 +1,7 @@
-import { Activity } from 'discord.js';
+import { Activity, ActivityType } from 'discord.js';
 
 export class UserActivityDTO {
-  type: number;
+  type: ActivityType;
   name: string;
   state: string | null;
   createTimestamp: Date;

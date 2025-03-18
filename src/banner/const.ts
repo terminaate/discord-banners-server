@@ -44,8 +44,8 @@ export const BannerColors = {
   INFO_BACKGROUND_COLOR: '#18191C',
   SECONDARY_BACKGROUND_COLOR: '#222',
   BASE_TEXT_COLOR: '#fff',
-  SECOND_TEXT_COLOR: '#B9BBBE',
-  THIRD_TEXT_COLOR: '#B2B2B4',
+  SECOND_TEXT_COLOR: '#B2B2B4',
+  THIRD_TEXT_COLOR: '#7b8181',
 };
 
 export const BANNER_DEFAULT_WIDTH = 300;
@@ -84,6 +84,6 @@ export const BannerDynamicHeights: BannerDynamicHeight[] = [
 
       return !customStatus && !!activities.length && activities.length >= 1;
     },
-    height: 420,
+    height: 430,
   },
 ];
