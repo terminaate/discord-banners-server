@@ -157,7 +157,7 @@ class BannerActivity {
       x: imageAspectRatio === 1 ? x : x - this.imageSize / 2,
       y,
       image: activityImage,
-      scale: (img) => ({
+      calculate: (img) => ({
         scaleX: this.imageSize / img.naturalHeight,
         scaleY: this.imageSize / img.naturalHeight,
       }),

@@ -14,21 +14,17 @@ export class BannerBackground extends BaseBannerLayer {
     const accentColor = user.accentColor;
 
     if (userBannerURL) {
-      const backgroundImage = await this.canvas.createImage(userBannerURL);
-
-      const scaleX = this.width / backgroundImage.naturalWidth;
-
       await this.canvas.drawImage({
-        image: backgroundImage,
+        url: userBannerURL,
         translate: false,
         x: this.x,
-        y:
-          (this.canvas.toPixelsY(this.height) - backgroundImage.naturalHeight) /
-          2,
-        scale: () => ({
-          scaleX,
-          scaleY: scaleX,
+        calculate: (img) => ({
+          scaleX: this.width / img.naturalWidth,
+          scaleY: this.width / img.naturalWidth,
+          y: (this.canvas.toPixelsY(this.height) - img.naturalHeight) / 2,
         }),
+        cacheId: user.id,
+        cacheProperty: 'banner',
       });
     } else {
       this.canvas.fillStyle = accentColor ?? BannerColors.DEFAULT_ACCENT_COLOR;

@@ -54,10 +54,12 @@ export class BannerAvatar extends BaseBannerLayer {
       url: user.avatar,
       x: this.canvas.toPixelsX(this.x) - size / 2,
       y: this.canvas.toPixelsY(this.y) - size / 2,
-      scale: (img) => ({
+      calculate: (img) => ({
         scaleX: size / img.naturalWidth,
         scaleY: size / img.naturalHeight,
       }),
+      cacheId: user.id,
+      cacheProperty: 'avatar',
     });
 
     this.canvas.ctx.restore();
@@ -77,7 +79,7 @@ export class BannerAvatar extends BaseBannerLayer {
       x: this.canvas.toPixelsX(this.x) - size / 2,
       y: this.canvas.toPixelsY(this.y) - size / 2,
       url: user.avatarDecoration,
-      scale: (img) => ({
+      calculate: (img) => ({
         scaleX: size / img.naturalWidth,
         scaleY: size / img.naturalHeight,
       }),

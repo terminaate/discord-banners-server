@@ -58,32 +58,20 @@ type RoundRectOpts = Coords & {
   stroke?: boolean;
 };
 
-// type RoundImageOpts = Coords & {
-//   url?: string;
-//   local?: boolean;
-//   image?: Image;
-//   scale?: (image: Image) => {
-//     scaleX?: number;
-//     scaleY?: number;
-//   };
-//   width?: MeasurementUnit;
-//   height?: MeasurementUnit;
-//   radius: BorderRadius;
-// };
-
-type DrawImageOpts = Coords & {
+type DrawImageOpts = Partial<Coords> & {
   url?: string;
   local?: boolean;
   image?: Image;
-  scale?: (image: Image) => {
-    scaleX?: number;
-    scaleY?: number;
-  };
-  cacheTTL?: number;
+  scaleX?: number;
+  scaleY?: number;
+  scale?: boolean;
+  cacheId?: string;
+  cacheProperty?: string;
   translate?: boolean;
   width?: MeasurementUnit;
   height?: MeasurementUnit;
   radius?: BorderRadius;
+  calculate?(img: Image): Omit<DrawImageOpts, 'image' | 'url' | 'local'>;
 };
 
 type FillRectOpts = Coords & {
@@ -119,7 +107,15 @@ const mimeTypeMap: { [key: string]: string } = {
 //       data: string;
 //     };
 //   };
+//   [cacheUrl: string]: string
 // };
+
+type CachedImageObject = {
+  [cacheProperty: string]: {
+    url: string;
+    data: string;
+  };
+};
 
 const imagesCache = createCache();
 
@@ -145,44 +141,72 @@ export class BaseCanvas extends Canvas {
     this.ctx.font = typeof newValue === 'object' ? newValue.value : newValue;
   }
 
-  async createImage(url: string, local = false, cacheTTL?: number) {
-    const base64 = await this.loadImageBase64(url, local, cacheTTL);
+  async createImage(
+    url: string,
+    local = false,
+    cacheId?: string,
+    cacheProperty?: string,
+  ) {
+    const base64 = await this.loadImageBase64(
+      url,
+      local,
+      cacheId,
+      cacheProperty,
+    );
 
     return await this.createImageFromBuffer(base64);
   }
 
-  async drawImage({
-    x,
-    y,
-    width,
-    height,
-    url,
-    image: originalImage,
-    local = false,
-    scale,
-    translate = !!scale,
-    cacheTTL,
-    radius,
-  }: DrawImageOpts) {
-    x = this.toPixelsX(x);
-    y = this.toPixelsY(y);
-    if (width) {
-      width = this.toPixelsX(width);
-    }
-    if (height) {
-      height = this.toPixelsY(height);
-    }
+  async drawImage(opts: DrawImageOpts) {
+    opts.x ??= 0;
+    opts.y ??= 0;
 
     const image =
-      originalImage ?? (await this.createImage(url!, local, cacheTTL));
+      opts.image ??
+      (await this.createImage(
+        opts.url!,
+        opts.local,
+        opts.cacheId,
+        opts.cacheProperty,
+      ));
+
+    const calculatedOpts = opts.calculate?.(image) ?? {};
+
+    const x = calculatedOpts.x
+      ? this.toPixelsX(calculatedOpts.x)
+      : this.toPixelsX(opts.x);
+    const y = calculatedOpts.y
+      ? this.toPixelsY(calculatedOpts.y)
+      : this.toPixelsY(opts.y);
+
+    const width = calculatedOpts.width
+      ? this.toPixelsX(calculatedOpts.width)
+      : this.toPixelsX(opts.width ?? image.naturalWidth);
+    const height = calculatedOpts.height
+      ? this.toPixelsY(calculatedOpts.height)
+      : this.toPixelsY(opts.height ?? image.naturalHeight);
+
+    Object.assign(opts, {
+      ...calculatedOpts,
+      x,
+      y,
+      width,
+      height,
+    });
+
+    const {
+      scaleX,
+      scaleY,
+      scale,
+      translate = scale !== undefined ||
+        scaleX !== undefined ||
+        scaleY !== undefined,
+      radius,
+    } = opts;
+
     const radiusObject = radius ? this.getBorderRadiusObject(radius) : null;
 
-    width ??= image.naturalWidth;
-    height ??= image.naturalHeight;
-
-    if (scale) {
-      const { scaleX, scaleY } = scale(image);
-
+    if (scale || scaleX || scaleY) {
       this.ctx.save();
 
       // TODO: fix rounding corners (for some reason rounding only one top left corner)
@@ -343,10 +367,29 @@ export class BaseCanvas extends Canvas {
     });
   }
 
-  private async loadImageBase64(url: string, local = false, cacheTTL?: number) {
-    const candidate = await imagesCache.get<string>(url);
-    if (candidate) {
-      return candidate;
+  private async loadImageBase64(
+    url: string,
+    local = false,
+    cacheId?: string,
+    cacheProperty?: string,
+  ) {
+    if (cacheId && cacheProperty) {
+      const candidate = await imagesCache.get<CachedImageObject>(cacheId);
+      const candidateProperty = candidate?.[cacheProperty];
+
+      if (candidateProperty && candidateProperty.url === url) {
+        console.log(
+          `getting from smart cache ${cacheId}:${cacheProperty}:${url}`,
+        );
+        return candidateProperty.data;
+      }
+    } else {
+      const candidate = await imagesCache.get<string>(url);
+
+      if (candidate) {
+        console.log(`getting from usual cache ${url}`);
+        return candidate;
+      }
     }
 
     let base64: string;
@@ -374,7 +417,24 @@ export class BaseCanvas extends Canvas {
       base64 = `data:${contentType};base64,${data.toString('base64')}`;
     }
 
-    void imagesCache.set(url, base64, cacheTTL);
+    if (cacheId && cacheProperty) {
+      const candidate = await imagesCache.get<CachedImageObject>(cacheId);
+
+      if (candidate) {
+        candidate[cacheProperty] ??= { url, data: base64 };
+
+        void imagesCache.set<CachedImageObject>(cacheId, candidate);
+      } else {
+        void imagesCache.set<CachedImageObject>(cacheId, {
+          [cacheProperty]: { url, data: base64 },
+        });
+      }
+
+      console.log(`setting to cache ${cacheId}:${cacheProperty}:${url} `);
+    } else {
+      console.log(`setting to cache usual ${url}:base64`);
+      void imagesCache.set(url, base64);
+    }
 
     return base64;
   }

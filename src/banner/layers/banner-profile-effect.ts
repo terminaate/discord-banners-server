@@ -16,7 +16,7 @@ export class BannerProfileEffect extends BaseBannerLayer {
       x: this.x,
       y: this.y,
       url: user.profileEffect,
-      scale: (img) => ({
+      calculate: (img) => ({
         scaleX: this.width / img.naturalWidth,
         scaleY: this.width / img.naturalWidth,
       }),

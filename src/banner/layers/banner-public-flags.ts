@@ -55,7 +55,7 @@ export class BannerPublicFlags extends BaseBannerLayer {
         y: this.y,
         url: flagImage,
         local: true,
-        scale: (img) => ({
+        calculate: (img) => ({
           scaleX: this.width / img.naturalWidth,
           scaleY: this.height / img.naturalHeight,
         }),
