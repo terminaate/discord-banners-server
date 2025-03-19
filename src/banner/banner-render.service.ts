@@ -67,7 +67,7 @@ export class BannerRenderService {
     }
 
     const userData: UserDataForCanvas = { user, activities };
-    // TODO: add user ability to choose height of banner, add scale parameter
+    // TODO: maybe add user ability to choose height of banner, add scale parameter
     const { height } = this.calculateHeight(userData);
 
     const canvas = new BaseCanvas(this.width, height, 'svg');
@@ -104,7 +104,8 @@ export class BannerRenderService {
       stats[layer.constructor.name] = endTime - startTime;
     }
 
-    this.logger.log(`Time to render a banner spend`, stats);
+    this.logger.log('Time to render a banner spend');
+    this.logger.log(stats);
 
     return canvas;
   }
@@ -113,130 +114,8 @@ export class BannerRenderService {
     const heightCandidate = BannerDynamicHeights.find((o) =>
       o.condition(user, activities),
     );
-    let height = this.height;
-    let separator = true;
+    const height = heightCandidate?.height ?? this.height;
 
-    if (heightCandidate) {
-      height = heightCandidate.height;
-      separator = Boolean(heightCandidate.separator);
-    }
-
-    return { height, separator };
+    return { height };
   }
 }
-
-// class BannerActivity extends BaseBannerLayer {
-//   x = BANNER_START_CONTENT_X;
-//   y = 371;
-//
-//
-//   activityTypeFont = "18px 'ABCGintoNormal'";
-//   activityTypeFillStyle = BannerColors.SECOND_TEXT_COLOR;
-//
-//   activityImageY = 384;
-//   activityImageHeight = 42;
-//   activityImageWidth = 42;
-//
-//   // TODO?: refactor these variables
-//   activityNameFont = "normal 500 18px 'ABCGintoNormal'";
-//   activityNameFillStyle = BannerColors.THIRD_TEXT_COLOR;
-//   activityNameY = 402;
-//   activityNameX = 312;
-//
-//   activityStartTimeFont = "18px 'Whitney'";
-//   activityStartTimeFillStyle = BannerColors.THIRD_TEXT_COLOR;
-//   activityStartTimeX = 312;
-//   activityStartTimeY = 422;
-//
-//   constructor(private canvas: BaseCanvas) {
-//     super();
-//   }
-//
-//   async render({ activity }: UserDataForCanvas): Promise<void> {
-//     if (!activity) {
-//       return;
-//     }
-//
-//     this.drawActivityType(activity);
-//     await this.drawActivityImage(activity);
-//     this.drawActivityName(activity);
-//     this.drawActivityStartTime(activity);
-//   }
-//
-//   private drawActivityType(activity: UserActivityDTO) {
-//     const activityType = activity.type;
-//
-//     this.canvas.fillStyle = this.activityTypeFillStyle;
-//     this.canvas.font = this.activityTypeFont;
-//     this.canvas.fillText({
-//       text: ActivitiesText[activityType] as string,
-//       x: this.x,
-//       y: this.y,
-//     });
-//   }
-//
-//   private async drawActivityImage(activity: UserActivityDTO) {
-//     const defaultActivityImage = path.resolve(AssetsPath, 'icons/activity.svg');
-//
-//     const activityImageURL = activity.largeImageURL ?? defaultActivityImage;
-//     const isLocalImage = activityImageURL === defaultActivityImage;
-//
-//     const activityImage = await this.canvas.createImage(
-//       activityImageURL,
-//       isLocalImage,
-//     );
-//
-//     // this.canvas.ctx.drawImage(
-//     //   activityImage,
-//     //   this.x,
-//     //   this.activityImageY * this.canvas.heightScale,
-//     //   this.activityImageWidth,
-//     //   this.activityImageHeight,
-//     // );
-//   }
-//
-//   private drawActivityName(activity: UserActivityDTO) {
-//     const activityName = activity.name;
-//
-//     this.canvas.fillStyle = this.activityNameFillStyle;
-//     this.canvas.font = this.activityNameFont;
-//     this.canvas.fillText({
-//       text: activityName,
-//       x: this.activityNameX,
-//       y: this.activityNameY,
-//     });
-//   }
-//
-//   private drawActivityStartTime(activity: UserActivityDTO) {
-//     const activityStartTime = activity.start;
-//     const activityType = activity.type;
-//     if (!activityStartTime) {
-//       return;
-//     }
-//
-//     const activityText = ActivitiesText[activityType] as string;
-//
-//     const startTimestamp = +activityStartTime;
-//
-//     const currentTime = +new Date();
-//     const differenceInMin = (currentTime - startTimestamp) / 100_000;
-//     const differenceInHour = (currentTime - startTimestamp) / 100_000 / 60;
-//     let timeText: string = `Just started ${activityText.toLowerCase()}`;
-//
-//     if (differenceInMin >= 1) {
-//       timeText = `for ${Math.ceil(differenceInMin)} minutes`;
-//     }
-//
-//     if (differenceInHour >= 1) {
-//       timeText = `for ${Math.ceil(differenceInHour)} hours`;
-//     }
-//
-//     this.canvas.fillStyle = this.activityStartTimeFillStyle;
-//     this.canvas.font = this.activityStartTimeFont;
-//     this.canvas.fillText({
-//       text: timeText,
-//       x: this.activityStartTimeX,
-//       y: this.activityStartTimeY,
-//     });
-//   }
-// }

@@ -149,12 +149,13 @@ class BannerActivity {
     });
     this.canvas.ctx.clip();
 
-    const imageAspectRatio =
-      activityImage.naturalWidth / activityImage.naturalHeight;
+    // @note: thx to chatlgbt for this code ;) (cuz im bad at math)
+    const scaledWidth =
+      activityImage.naturalWidth *
+      (this.imageSize / activityImage.naturalHeight);
 
     await this.canvas.drawImage({
-      // TODO: I SWEAR I DON'T KNOW THIS THING WORKS
-      x: imageAspectRatio === 1 ? x : x - this.imageSize / 2,
+      x: x - (scaledWidth - this.imageSize) / 2,
       y,
       image: activityImage,
       calculate: (img) => ({

@@ -98,18 +98,6 @@ const mimeTypeMap: { [key: string]: string } = {
   svg: 'image/svg+xml',
 };
 
-// TODO: add smart caching with with type smth like that -
-
-// type CacheStore = {
-//   [cacheId: string]: {
-//     [cacheProperty: string]: {
-//       url: string;
-//       data: string;
-//     };
-//   };
-//   [cacheUrl: string]: string
-// };
-
 type CachedImageObject = {
   [cacheProperty: string]: {
     url: string;
@@ -138,7 +126,7 @@ export class BaseCanvas extends Canvas {
   }
 
   set font(newValue: FontInfo | string) {
-    this.ctx.font = typeof newValue === 'object' ? newValue.value : newValue;
+    this.ctx.font = newValue.valueOf();
   }
 
   async createImage(
@@ -378,16 +366,16 @@ export class BaseCanvas extends Canvas {
       const candidateProperty = candidate?.[cacheProperty];
 
       if (candidateProperty && candidateProperty.url === url) {
-        console.log(
-          `getting from smart cache ${cacheId}:${cacheProperty}:${url}`,
-        );
+        // console.log(
+        //   `getting from smart cache ${cacheId}:${cacheProperty}:${url}`,
+        // );
         return candidateProperty.data;
       }
     } else {
       const candidate = await imagesCache.get<string>(url);
 
       if (candidate) {
-        console.log(`getting from usual cache ${url}`);
+        // console.log(`getting from usual cache ${url}`);
         return candidate;
       }
     }
@@ -430,9 +418,9 @@ export class BaseCanvas extends Canvas {
         });
       }
 
-      console.log(`setting to cache ${cacheId}:${cacheProperty}:${url} `);
+      // console.log(`setting to cache ${cacheId}:${cacheProperty}:${url} `);
     } else {
-      console.log(`setting to cache usual ${url}:base64`);
+      // console.log(`setting to cache usual ${url}:base64`);
       void imagesCache.set(url, base64);
     }
 

@@ -94,7 +94,7 @@ export class BannerService {
 
     const svg = canvas.toBuffer().toString();
 
-    console.log('svg length', formatBytes(svg.length));
+    console.log('svg size', formatBytes(svg.length));
 
     await this.cacheService.setBannerInCache(
       {
