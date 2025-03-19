@@ -104,18 +104,18 @@ export class BannerController {
 
     const cacheHeader = this.getCacheHeader(cache);
 
-    if (this.configService.get('IS_DEV')) {
-      console.log('rendering because its dev mode');
-      const svg = await this.handleRenderRequest(
-        memberId,
-        overwrites,
-        bannerOptions,
-      );
-
-      res.setHeader('Content-Type', 'image/svg+xml');
-      res.setHeader('Cache-Control', cacheHeader);
-      return res.send(svg);
-    }
+    // if (this.configService.get('IS_DEV')) {
+    //   console.log('rendering because its dev mode');
+    //   const svg = await this.handleRenderRequest(
+    //     memberId,
+    //     overwrites,
+    //     bannerOptions,
+    //   );
+    //
+    //   res.setHeader('Content-Type', 'image/svg+xml');
+    //   res.setHeader('Cache-Control', cacheHeader);
+    //   return res.send(svg);
+    // }
 
     const cachedBanner = await this.bannerCacheService.getBannerFromCache({
       userId: memberId,
