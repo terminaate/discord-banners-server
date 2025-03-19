@@ -17,6 +17,8 @@ export class BannerUsername extends BaseBannerLayer {
   fillStyle = BannerColors.BASE_TEXT_COLOR;
   font = new FontInfo(20, 'ABCGintoNormal');
 
+  maxTextSize = 40;
+
   render({ user }: UserDataForCanvas) {
     const { username, globalName } = user;
 
@@ -48,6 +50,7 @@ export class BannerUsername extends BaseBannerLayer {
       text: username,
       x: this.x,
       y: this.y,
+      maxSize: this.maxTextSize,
     });
   }
 
@@ -60,6 +63,7 @@ export class BannerUsername extends BaseBannerLayer {
       text: username,
       x: this.x,
       y: y,
+      maxSize: this.maxTextSize,
     });
   }
 }

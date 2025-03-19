@@ -15,6 +15,7 @@ import { UserDataForCanvas } from '@/banner/types/user-data-for-canvas';
 import { BannerPublicFlags } from '@/banner/layers/banner-public-flags';
 import * as path from 'node:path';
 import { ActivityType } from 'discord.js';
+import { prettyDuration } from '@/utils/prettyDuration';
 
 class BannerActivity {
   width: MeasurementUnit = '90%';
@@ -26,6 +27,10 @@ class BannerActivity {
   imageRadius = 5;
 
   font = new FontInfo(10, 'ABCGintoNormal');
+
+  infoMarginLeft = 5;
+
+  maxTextSize = 35;
 
   constructor(
     private activity: UserActivityDTO,
@@ -59,11 +64,22 @@ class BannerActivity {
     });
   }
 
-  private drawListeningInfo() {}
+  private drawListeningInfo() {
+    // const songName = this.activity.details;
+    // const songAuthor = this.activity.state;
+    const {
+      details: songName,
+      state: songAuthor,
+      startTimestamp,
+      endTimestamp,
+      createTimestamp,
+    } = this.activity;
 
-  private drawDefaultInfo() {
-    const font = new FontInfo(10, 'ABCGintoNormal');
-    const marginLeft = 5;
+    if (!songName || !songAuthor) {
+      return this.drawDefaultInfo();
+    }
+
+    const marginLeft = this.infoMarginLeft;
 
     const x =
       this.canvas.toPixelsX(this.x) +
@@ -72,34 +88,141 @@ class BannerActivity {
       marginLeft;
     const y =
       this.canvas.toPixelsY(this.y) +
-      font.size +
+      this.font.size +
+      (this.height - this.imageSize) -
+      this.padding;
+
+    this.canvas.fillStyle = BannerColors.BASE_TEXT_COLOR;
+    this.canvas.font = this.font;
+    this.canvas.fillText({
+      x,
+      y,
+      text: songName,
+      maxSize: this.maxTextSize,
+    });
+
+    this.canvas.fillStyle = BannerColors.SECOND_TEXT_COLOR;
+    this.canvas.font = this.font;
+    this.canvas.fillText({
+      x,
+      y: y + this.font.size + this.padding / 2,
+      text: songAuthor,
+      maxSize: this.maxTextSize,
+    });
+
+    console.log(this.activity);
+
+    if (startTimestamp && endTimestamp) {
+      const timeElapsed = Date.now() - +startTimestamp;
+      const songDuration = +endTimestamp - +startTimestamp;
+      const progress =
+        (Date.now() - +startTimestamp) / (+endTimestamp - +startTimestamp);
+
+      const durationsTextWidth = this.canvas.ctx.measureText('00:00').width;
+
+      const gapBetweenElements = 3;
+      const progressBarWidth =
+        this.canvas.toPixelsX(this.width) -
+        this.padding * 2 -
+        this.imageSize -
+        durationsTextWidth * 2 -
+        gapBetweenElements * 2;
+
+      const baseY =
+        this.canvas.toPixelsY(this.y) +
+        this.font.size +
+        (this.height - this.padding * 2) -
+        this.imageRadius / 2;
+
+      this.canvas.fillStyle = BannerColors.SECOND_TEXT_COLOR;
+      this.canvas.fillText({
+        text: prettyDuration(timeElapsed),
+        x,
+        y: baseY,
+      });
+
+      this.canvas.fillStyle = BannerColors.INFO_BACKGROUND_COLOR;
+      this.canvas.roundRect({
+        width: progressBarWidth,
+        height: 2,
+        y: baseY - this.font.size / 2,
+        x: x + durationsTextWidth + gapBetweenElements,
+        radius: 1,
+      });
+
+      this.canvas.fillStyle = BannerColors.BASE_TEXT_COLOR;
+      this.canvas.roundRect({
+        width: progressBarWidth * progress,
+        height: 2,
+        y: baseY - this.font.size / 2,
+        x: x + durationsTextWidth + gapBetweenElements,
+        radius: 1,
+      });
+
+      this.canvas.fillStyle = BannerColors.SECOND_TEXT_COLOR;
+      this.canvas.fillText({
+        text: prettyDuration(songDuration),
+        x: x + progressBarWidth + durationsTextWidth + gapBetweenElements * 2,
+        y: baseY,
+      });
+
+      // const duration = Date.now() - +startTimestamp;
+      //
+      // this.canvas.fillStyle = '#00bc40';
+      // this.canvas.font = this.font;
+      // this.canvas.fillText({
+      //   text: prettyDuration(duration),
+      //   x,
+      //   y:
+      // });
+    } else if (startTimestamp) {
+      const duration = Date.now() - +startTimestamp;
+
+      this.canvas.fillStyle = '#00bc40';
+      this.canvas.font = this.font;
+      this.canvas.fillText({
+        text: prettyDuration(duration),
+        x,
+        y:
+          this.canvas.toPixelsY(this.y) +
+          this.font.size +
+          // TODO: idk why this.padding * 2 instead of this.padding
+          (this.height - this.padding * 2),
+      });
+    }
+  }
+
+  private drawDefaultInfo() {
+    const marginLeft = this.infoMarginLeft;
+
+    const x =
+      this.canvas.toPixelsX(this.x) +
+      this.padding +
+      this.imageSize +
+      marginLeft;
+    const y =
+      this.canvas.toPixelsY(this.y) +
+      this.font.size +
       this.imageSize / 2 +
       this.padding / 2;
 
     this.canvas.fillStyle = BannerColors.BASE_TEXT_COLOR;
-    this.canvas.font = font;
+    this.canvas.font = this.font;
     this.canvas.fillText({
       x,
       y,
       text: this.activity.name,
+      maxSize: this.maxTextSize,
     });
 
-    const currentTime = Date.now();
-    const difference = currentTime - +this.activity.startTimestamp!;
-
-    const differenceInMinutes = String(
-      Math.trunc(difference / (1000 * 60)),
-    ).padStart(2, '0');
-    const differenceInSeconds = String(
-      Math.trunc((difference / 1000) % 60),
-    ).padStart(2, '0');
+    const duration = Date.now() - +this.activity.startTimestamp!;
 
     this.canvas.fillStyle = '#00bc40';
-    this.canvas.font = font;
+    this.canvas.font = this.font;
     this.canvas.fillText({
-      text: `${differenceInMinutes}:${differenceInSeconds}`,
+      text: prettyDuration(duration),
       x,
-      y: y + font.size + this.padding / 2,
+      y: y + this.font.size + this.padding / 2,
     });
   }
 
@@ -184,6 +307,7 @@ export class BannerActivities extends BaseBannerLayer {
   y: MeasurementUnit;
 
   gapBetweenActivities = 10;
+  marginTop = 10;
 
   width: MeasurementUnit = '90%';
   height?: number;
@@ -213,11 +337,9 @@ export class BannerActivities extends BaseBannerLayer {
       BannerPublicFlags.name,
     );
 
-    const marginTop = 10;
-
     this.y =
       this.canvas.toPixelsY(publicFlagsLayer.y) +
       this.canvas.toPixelsY(publicFlagsLayer.height) +
-      marginTop;
+      this.marginTop;
   }
 }

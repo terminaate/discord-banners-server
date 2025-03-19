@@ -16,7 +16,6 @@ import { UserDataForCanvas } from '@/banner/types/user-data-for-canvas';
 import { BorderRadius } from '@/banner/types/border-radius';
 import { ProfileEffectsService } from '@/fake-profile/profile-effects.service';
 import { AvatarDecorationsService } from '@/fake-profile/avatar-decorations.service';
-import { UserFlags } from 'discord.js';
 import { BannerBackground } from '@/banner/layers/banner-background';
 import { BannerAvatar } from '@/banner/layers/banner-avatar';
 import { BannerStatus } from '@/banner/layers/banner-status';

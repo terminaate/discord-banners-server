@@ -3,6 +3,7 @@ import { Canvas, CanvasRenderingContext2D, Image } from 'canvas';
 import * as fs from 'fs/promises';
 import axios from 'axios';
 import { createCache } from 'cache-manager';
+import { truncate } from 'lodash';
 
 export type MeasurementUnit = number | `${number}%`;
 
@@ -87,7 +88,7 @@ type FillCircleOpts = Coords & {
 
 type FillTextOpts = Coords & {
   text: string;
-  maxWidth?: number;
+  maxSize?: number;
 };
 
 const mimeTypeMap: { [key: string]: string } = {
@@ -307,11 +308,15 @@ export class BaseCanvas extends Canvas {
     }
   }
 
-  fillText({ text, x, y, maxWidth }: FillTextOpts) {
+  fillText({ text, x, y, maxSize }: FillTextOpts) {
     x = this.toPixelsX(x);
     y = this.toPixelsY(y);
 
-    this.ctx.fillText(text, x, y, maxWidth);
+    if (maxSize) {
+      text = truncate(text, { length: maxSize, separator: '...' });
+    }
+
+    this.ctx.fillText(text, x, y);
   }
 
   toPixels(value: number | `${number}%`, max: number) {
