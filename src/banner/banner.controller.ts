@@ -105,6 +105,7 @@ export class BannerController {
     const cacheHeader = this.getCacheHeader(cache);
 
     if (this.configService.get('IS_DEV')) {
+      console.log('rendering because its dev mode');
       const svg = await this.handleRenderRequest(
         memberId,
         overwrites,
@@ -123,12 +124,14 @@ export class BannerController {
     });
 
     if (cachedBanner) {
+      console.log('sending banner from cache');
       res.setHeader('Content-Type', 'image/svg+xml');
       res.setHeader('Cache-Control', cacheHeader);
 
       return res.send(cachedBanner);
     }
 
+    console.log('rendering because theres no cached one');
     const svg = await this.handleRenderRequest(
       memberId,
       overwrites,
