@@ -23,6 +23,8 @@ export class BannerService {
     bannerOptions: BannerOptions,
     cache = false,
   ) {
+    // TODO: expand this function, remove rendering users, and add two data sets with most complex and most easiest data's
+
     const member = await this.discordService.getMemberByIdOrUsername(memberId);
     if (!member) {
       throw new NotFoundException();

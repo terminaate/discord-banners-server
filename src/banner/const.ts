@@ -45,6 +45,7 @@ export const BannerColors = {
   BASE_TEXT_COLOR: '#fff',
   SECOND_TEXT_COLOR: '#B2B2B4',
   THIRD_TEXT_COLOR: '#7b8181',
+  TEXT_GREEN: '#00f633',
 };
 
 export const BANNER_DEFAULT_WIDTH = 300;

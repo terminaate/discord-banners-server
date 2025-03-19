@@ -65,14 +65,11 @@ class BannerActivity {
   }
 
   private drawListeningInfo() {
-    // const songName = this.activity.details;
-    // const songAuthor = this.activity.state;
     const {
       details: songName,
       state: songAuthor,
       startTimestamp,
       endTimestamp,
-      createTimestamp,
     } = this.activity;
 
     if (!songName || !songAuthor) {
@@ -178,7 +175,7 @@ class BannerActivity {
     } else if (startTimestamp) {
       const duration = Date.now() - +startTimestamp;
 
-      this.canvas.fillStyle = '#00bc40';
+      this.canvas.fillStyle = BannerColors.TEXT_GREEN;
       this.canvas.font = this.font;
       this.canvas.fillText({
         text: prettyDuration(duration),
@@ -217,7 +214,7 @@ class BannerActivity {
 
     const duration = Date.now() - +this.activity.startTimestamp!;
 
-    this.canvas.fillStyle = '#00bc40';
+    this.canvas.fillStyle = BannerColors.TEXT_GREEN;
     this.canvas.font = this.font;
     this.canvas.fillText({
       text: prettyDuration(duration),
