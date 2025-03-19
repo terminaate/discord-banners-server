@@ -24,6 +24,8 @@ import { BannerPublicFlags } from '@/banner/layers/banner-public-flags';
 import { BannerActivities } from '@/banner/layers/banner-activities';
 import { BannerProfileEffect } from '@/banner/layers/banner-profile-effect';
 
+// TODO: add custom status layer
+
 @Injectable()
 export class BannerRenderService {
   private readonly logger = new Logger(BannerRenderService.name);

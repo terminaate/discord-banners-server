@@ -107,8 +107,6 @@ class BannerActivity {
       maxSize: this.maxTextSize,
     });
 
-    console.log(this.activity);
-
     if (startTimestamp && endTimestamp) {
       const timeElapsed = Date.now() - +startTimestamp;
       const songDuration = +endTimestamp - +startTimestamp;
@@ -162,16 +160,6 @@ class BannerActivity {
         x: x + progressBarWidth + durationsTextWidth + gapBetweenElements * 2,
         y: baseY,
       });
-
-      // const duration = Date.now() - +startTimestamp;
-      //
-      // this.canvas.fillStyle = '#00bc40';
-      // this.canvas.font = this.font;
-      // this.canvas.fillText({
-      //   text: prettyDuration(duration),
-      //   x,
-      //   y:
-      // });
     } else if (startTimestamp) {
       const duration = Date.now() - +startTimestamp;
 
