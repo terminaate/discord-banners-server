@@ -183,7 +183,6 @@ class BannerActivity {
         y:
           this.canvas.toPixelsY(this.y) +
           this.font.size +
-          // TODO: idk why this.padding * 2 instead of this.padding
           (this.height - this.padding * 2),
       });
     }

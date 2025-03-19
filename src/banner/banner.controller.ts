@@ -57,7 +57,6 @@ class GetBannerQuery {
   decoration?: string;
 }
 
-// TODO: improve
 @Controller()
 export class BannerController {
   constructor(

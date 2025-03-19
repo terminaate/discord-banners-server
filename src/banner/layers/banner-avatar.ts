@@ -5,8 +5,6 @@ import { UserDTO } from '@/common/dto/user.dto';
 import { BannerColors } from '@/banner/const';
 import { BannerBackground } from '@/banner/layers/banner-background';
 
-// TODO: add cache ttl for user assets
-
 export class BannerAvatar extends BaseBannerLayer {
   x: MeasurementUnit = '18%';
   y: MeasurementUnit;
