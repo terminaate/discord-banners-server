@@ -34,12 +34,14 @@ export class ProfileEffectsService {
 
   @Cron('0 * * * *')
   private async init() {
-    const { data: effects } =
-      await this.httpService.axiosRef.get<typeof this.profileEffects>(
-        '/profile-effects',
-      );
+    const response = await this.httpService.axiosRef
+      .get<typeof this.profileEffects>('/profile-effects')
+      .catch(() => null);
+    if (!response) {
+      return;
+    }
 
-    this.profileEffects = effects;
+    this.profileEffects = response.data;
 
     this.logger.log('Profile effects retrieved');
   }

@@ -32,12 +32,14 @@ export class AvatarDecorationsService {
 
   @Cron('0 * * * *')
   private async init() {
-    const { data: decorations } =
-      await this.httpService.axiosRef.get<typeof this.decorations>(
-        '/decorations',
-      );
+    const response = await this.httpService.axiosRef
+      .get<typeof this.decorations>('/decorations')
+      .catch(() => null);
+    if (!response) {
+      return;
+    }
 
-    this.decorations = decorations;
+    this.decorations = response.data;
 
     this.logger.log('Avatar decorations effects retrieved');
   }
