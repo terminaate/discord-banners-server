@@ -36,7 +36,6 @@ export class FakeProfileService {
 
       const res: Partial<Record<keyof UserDTO, string>> = {};
 
-      // TODO: improve?)
       if (fakeProfileData.avatar) {
         res.avatar = fakeProfileData.avatar;
       }

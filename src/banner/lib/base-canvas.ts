@@ -108,7 +108,6 @@ type CachedImageObject = {
 
 const imagesCache = createCache();
 
-// TODO: maybe move this to separated module?
 export class BaseCanvas extends Canvas {
   ctx: CanvasRenderingContext2D;
 

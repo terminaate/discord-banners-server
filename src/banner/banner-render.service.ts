@@ -68,7 +68,6 @@ export class BannerRenderService {
     }
 
     const userData: UserDataForCanvas = { user, activities };
-    // TODO: maybe add user ability to choose height of banner, add scale parameter
     const { height } = this.calculateHeight(userData);
 
     const canvas = new BaseCanvas(this.width, height, 'svg');
