@@ -138,21 +138,29 @@ export class BannerCacheService {
       };
     }
 
-    const [userId, username, data] = cacheKey.split('@');
+    try {
+      const [userId, username, data] = cacheKey.split('@');
 
-    const { overwrites, bannerOptions } = data
-      ? (JSON.parse(atob(data)) as CacheKeyData)
-      : {
-          bannerOptions: undefined,
-          overwrites: undefined,
-        };
+      const { overwrites, bannerOptions } = data
+        ? (JSON.parse(atob(data)) as CacheKeyData)
+        : {
+            bannerOptions: undefined,
+            overwrites: undefined,
+          };
 
-    return {
-      userId,
-      username,
-      overwrites,
-      bannerOptions,
-    };
+      return {
+        userId,
+        username,
+        overwrites,
+        bannerOptions,
+      };
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (e) {
+      return {
+        userId: '',
+        username: '',
+      };
+    }
   }
 
   private async scanCacheKeys(filterCb: (val: string) => boolean) {
@@ -163,6 +171,8 @@ export class BannerCacheService {
       const iterator = redisStore.iterator!;
 
       for await (const [key] of iterator({})) {
+        console.log(`debug log, current redis key - ${key}`);
+
         if (filterCb(key as string)) {
           matchedKeys.push(key as string);
         }

@@ -107,6 +107,7 @@ class BannerActivity {
       maxSize: this.maxTextSize,
     });
 
+    // TODO: works unstable
     if (startTimestamp && endTimestamp) {
       const timeElapsed = Date.now() - +startTimestamp;
       const songDuration = +endTimestamp - +startTimestamp;
