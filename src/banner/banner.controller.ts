@@ -117,19 +117,19 @@ export class BannerController {
     //   return res.send(svg);
     // }
 
-    const cachedBanner = await this.bannerCacheService.getBannerFromCache({
-      userId: memberId,
-      overwrites,
-      bannerOptions,
-    });
-
-    if (cachedBanner) {
-      console.log('sending banner from cache');
-      res.setHeader('Content-Type', 'image/svg+xml');
-      res.setHeader('Cache-Control', cacheHeader);
-
-      return res.send(cachedBanner);
-    }
+    // const cachedBanner = await this.bannerCacheService.getBannerFromCache({
+    //   userId: memberId,
+    //   overwrites,
+    //   bannerOptions,
+    // });
+    //
+    // if (cachedBanner) {
+    //   console.log('sending banner from cache');
+    //   res.setHeader('Content-Type', 'image/svg+xml');
+    //   res.setHeader('Cache-Control', cacheHeader);
+    //
+    //   return res.send(cachedBanner);
+    // }
 
     console.log('rendering because theres no cached one');
     const svg = await this.handleRenderRequest(
