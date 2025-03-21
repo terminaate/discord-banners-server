@@ -17,6 +17,7 @@ import { BannerService } from '@/banner/banner.service';
 import { Response } from 'express';
 import { FakeProfileService } from '@/fake-profile/fake-profile.service';
 import { Transform } from 'class-transformer';
+import ms from 'ms';
 
 class GetBannerParams {
   @IsString()
@@ -26,11 +27,6 @@ class GetBannerParams {
 // TODO: add profileEffect & decoration validation
 
 class GetBannerQuery {
-  @IsOptional()
-  @IsBoolean()
-  @Transform(({ value }) => value === 'true')
-  cache?: boolean;
-
   @IsOptional()
   @IsBoolean()
   @Transform(({ value }) => value === 'true')
@@ -57,6 +53,8 @@ class GetBannerQuery {
 
 @Controller()
 export class BannerController {
+  private readonly bannerCacheTTL = ms('30s');
+
   constructor(
     private discordService: DiscordService,
     private bannerService: BannerService,
@@ -74,13 +72,11 @@ export class BannerController {
       params,
       query,
     );
-    const { cache = false } = query;
 
     return this.bannerService.benchmarkBannerRender(
       memberId,
       overwrites,
       bannerOptions,
-      cache,
     );
   }
 
@@ -96,9 +92,6 @@ export class BannerController {
       params,
       query,
     );
-    const { cache } = query;
-
-    const cacheHeader = this.getCacheHeader(cache);
 
     const svg = await this.handleRenderRequest(
       memberId,
@@ -107,7 +100,7 @@ export class BannerController {
     );
 
     res.setHeader('Content-Type', 'image/svg+xml');
-    res.setHeader('Cache-Control', cacheHeader);
+    res.setHeader('Cache-Control', `max-age=${this.bannerCacheTTL}`);
 
     return res.send(svg);
   }
@@ -167,9 +160,5 @@ export class BannerController {
     }
 
     return { overwrites, bannerOptions };
-  }
-
-  private getCacheHeader(value?: boolean) {
-    return value ? 'max-age=30000' : 'no-store, no-cache, must-revalidate';
   }
 }
