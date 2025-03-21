@@ -14,9 +14,7 @@ import { UserDTO } from '@/common/dto/user.dto';
 import { pickBy } from 'lodash';
 import { DiscordService } from '@/discord/discord.service';
 import { BannerService } from '@/banner/banner.service';
-import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
-import { BannerCacheService } from '@/banner/banner-cache.service';
 import { FakeProfileService } from '@/fake-profile/fake-profile.service';
 import { Transform } from 'class-transformer';
 
@@ -62,8 +60,6 @@ export class BannerController {
   constructor(
     private discordService: DiscordService,
     private bannerService: BannerService,
-    private bannerCacheService: BannerCacheService,
-    private configService: ConfigService,
     private fakeProfileService: FakeProfileService,
   ) {}
 
@@ -104,34 +100,6 @@ export class BannerController {
 
     const cacheHeader = this.getCacheHeader(cache);
 
-    // if (this.configService.get('IS_DEV')) {
-    //   console.log('rendering because its dev mode');
-    //   const svg = await this.handleRenderRequest(
-    //     memberId,
-    //     overwrites,
-    //     bannerOptions,
-    //   );
-    //
-    //   res.setHeader('Content-Type', 'image/svg+xml');
-    //   res.setHeader('Cache-Control', cacheHeader);
-    //   return res.send(svg);
-    // }
-
-    // const cachedBanner = await this.bannerCacheService.getBannerFromCache({
-    //   userId: memberId,
-    //   overwrites,
-    //   bannerOptions,
-    // });
-    //
-    // if (cachedBanner) {
-    //   console.log('sending banner from cache');
-    //   res.setHeader('Content-Type', 'image/svg+xml');
-    //   res.setHeader('Cache-Control', cacheHeader);
-    //
-    //   return res.send(cachedBanner);
-    // }
-
-    console.log('rendering because theres no cached one');
     const svg = await this.handleRenderRequest(
       memberId,
       overwrites,

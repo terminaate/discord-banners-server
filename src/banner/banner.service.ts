@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { BannerRenderService } from '@/banner/banner-render.service';
-import { BannerCacheService } from '@/banner/banner-cache.service';
 import { Activity, ActivityType, GuildMember } from 'discord.js';
 import { UserDTO } from '@/common/dto/user.dto';
 import { BannerOptions } from '@/banner/types/banner-options';
@@ -13,7 +12,6 @@ import { UserActivityDTO } from '@/common/dto/user-activity.dto';
 export class BannerService {
   constructor(
     private renderService: BannerRenderService,
-    private cacheService: BannerCacheService,
     private discordService: DiscordService,
   ) {}
 
@@ -21,7 +19,6 @@ export class BannerService {
     memberId: string,
     overwrites: Partial<Record<keyof UserDTO, string>>,
     bannerOptions: BannerOptions,
-    cache = false,
   ) {
     // TODO: expand this function, remove rendering users, and add two data sets with most complex and most easiest data's
 
@@ -35,29 +32,12 @@ export class BannerService {
     for (let i = 0; i < 100; i++) {
       const startDate = Date.now();
 
-      if (cache) {
-        const cachedBanner = await this.cacheService.getBannerFromCache({
-          userId: memberId,
-          overwrites,
-          bannerOptions,
-        });
-
-        if (!cachedBanner) {
-          await this.renderBanner(
-            member,
-            member.presence?.activities,
-            overwrites,
-            bannerOptions,
-          );
-        }
-      } else {
-        await this.renderBanner(
-          member,
-          member.presence?.activities,
-          overwrites,
-          bannerOptions,
-        );
-      }
+      await this.renderBanner(
+        member,
+        member.presence?.activities,
+        overwrites,
+        bannerOptions,
+      );
 
       const endDate = Date.now();
 
@@ -97,16 +77,6 @@ export class BannerService {
     const svg = canvas.toBuffer().toString();
 
     console.log('svg size', formatBytes(svg.length));
-
-    await this.cacheService.setBannerInCache(
-      {
-        userId: userDto.id,
-        username: userDto.username,
-        bannerOptions,
-        overwrites,
-      },
-      svg,
-    );
 
     return svg;
   }

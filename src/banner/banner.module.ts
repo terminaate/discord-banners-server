@@ -1,7 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { BannerController } from './banner.controller';
 import { BannerService } from './banner.service';
-import { BannerCacheService } from '@/banner/banner-cache.service';
 import { BannerRenderService } from '@/banner/banner-render.service';
 import { CacheModule } from '@nestjs/cache-manager';
 import { createKeyv } from '@keyv/redis';
@@ -27,7 +26,7 @@ import { FakeProfileModule } from '@/fake-profile/fake-profile.module';
     }),
   ],
   controllers: [BannerController],
-  providers: [BannerCacheService, BannerRenderService, BannerService],
-  exports: [BannerService, BannerCacheService],
+  providers: [BannerRenderService, BannerService],
+  exports: [BannerService],
 })
 export class BannerModule {}
