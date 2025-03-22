@@ -70,14 +70,13 @@ export class BannerPublicFlags extends BaseBannerLayer {
       BannerUsername.name,
     );
 
-    // todo? refactor?
-
-    const zeroY =
-      this.canvas.toPixelsY(usernameLayer.y) - usernameLayer.font.size;
+    const usernameLayerY = this.canvas.toPixelsY(usernameLayer.y);
+    const usernameLayerHeight = this.canvas.toPixelsY(usernameLayer.height);
 
     this.y =
-      zeroY +
-      this.canvas.toPixelsY(usernameLayer.height) +
+      usernameLayerY -
+      usernameLayer.font.size +
+      usernameLayerHeight +
       usernameLayer.secondaryFont.size;
   }
 }

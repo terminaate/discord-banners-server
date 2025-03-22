@@ -4,7 +4,7 @@ import { AvatarDecorationsService } from '@/fake-profile/avatar-decorations.serv
 import { DiscordService } from '@/discord/discord.service';
 import { UserDTO } from '@/common/dto/user.dto';
 import { UserActivityDTO } from '@/common/dto/user-activity.dto';
-import { Activity, ActivityType, ImageURLOptions } from 'discord.js';
+import { Activity, ActivityType } from 'discord.js';
 import { BannerRenderService } from '@/banner/banner-render.service';
 import { BannerOptions } from '@/banner/types/banner-options';
 import { sum } from 'lodash';
@@ -45,7 +45,7 @@ export class BannerBenchmarkService {
         createdTimestamp: Date.now(),
         state: 'ASJDHAJDHASJKHDKJASHDKJASHDJ',
         assets: {
-          largeImageURL(options?: ImageURLOptions): string | null {
+          largeImageURL() {
             return DEFAULT_ACTIVITY_IMAGE;
           },
         },

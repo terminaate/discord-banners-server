@@ -28,8 +28,6 @@ class GetBannerParams {
   memberId: string;
 }
 
-// TODO: add profileEffect & decoration validation
-
 class GetBannerQuery {
   @IsOptional()
   @IsBoolean()
