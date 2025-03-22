@@ -114,14 +114,6 @@ class BannerActivity {
       const progress =
         (Date.now() - +startTimestamp) / (+endTimestamp - +startTimestamp);
 
-      console.log(
-        startTimestamp,
-        endTimestamp,
-        timeElapsed,
-        songDuration,
-        progress,
-      );
-
       const durationsTextWidth = this.canvas.ctx.measureText('00:00').width;
 
       const gapBetweenElements = 3;

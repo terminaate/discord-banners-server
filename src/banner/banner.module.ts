@@ -6,6 +6,7 @@ import { DiscordModule } from '@/discord/discord.module';
 import { FakeProfileModule } from '@/fake-profile/fake-profile.module';
 import { BannerRenderRecordEntity } from '@/banner/entities/banner-render-record.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { BannerBenchmarkService } from '@/banner/banner-benchmark.service';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     FakeProfileModule,
   ],
   controllers: [BannerController],
-  providers: [BannerRenderService, BannerService],
+  providers: [BannerRenderService, BannerService, BannerBenchmarkService],
   exports: [BannerService],
 })
 export class BannerModule {}

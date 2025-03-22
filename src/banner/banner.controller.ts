@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
   NotFoundException,
   Param,
@@ -19,6 +20,8 @@ import { FakeProfileService } from '@/fake-profile/fake-profile.service';
 import { Transform } from 'class-transformer';
 import ms from 'ms';
 import { PaginationDto } from '@/common/dto/pagination.dto';
+import { BannerBenchmarkService } from '@/banner/banner-benchmark.service';
+import { ConfigService } from '@nestjs/config';
 
 class GetBannerParams {
   @IsString()
@@ -47,6 +50,13 @@ class GetBannerQuery {
   decoration?: string;
 }
 
+class BenchmarkBannerQuery {
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true')
+  complex?: boolean;
+}
+
 @Controller()
 export class BannerController {
   private readonly bannerCacheTTL = ms('30s');
@@ -54,25 +64,24 @@ export class BannerController {
   constructor(
     private discordService: DiscordService,
     private bannerService: BannerService,
+    private bannerBenchmarkService: BannerBenchmarkService,
     private fakeProfileService: FakeProfileService,
+    private configService: ConfigService,
   ) {}
 
-  @Get('/banner-benchmark/:memberId')
+  @Get('/banner-benchmark')
   @HttpCode(HttpStatus.OK)
-  async getBannerBenchmark(
-    @Param() params: GetBannerParams,
-    @Query() query: GetBannerQuery,
-  ) {
-    const { memberId } = params;
-    const { overwrites, bannerOptions } = await this.getBannerDataFromRequest(
-      params,
-      query,
-    );
+  async getBannerBenchmark(@Query() { complex }: BenchmarkBannerQuery) {
+    const IS_DEV = this.configService.get<boolean>('IS_DEV');
+    if (!IS_DEV) {
+      throw new HttpException(
+        'Banner benchmark allowed only in dev mode!',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
-    return this.bannerService.benchmarkBannerRender(
-      memberId,
-      overwrites,
-      bannerOptions,
+    return this.bannerBenchmarkService.benchmarkBannerRender(
+      complex !== undefined,
     );
   }
 

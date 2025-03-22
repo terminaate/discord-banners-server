@@ -9,6 +9,17 @@ export class DiscordService {
     private configService: ConfigService,
   ) {}
 
+  getRandomUser() {
+    const guild = this.client.guilds.cache.get(
+      this.configService.get('GUILD_ID')!,
+    );
+    if (!guild) {
+      return;
+    }
+
+    return guild.members.cache.random();
+  }
+
   async getMemberByIdOrUsername(userId: Snowflake) {
     const guild = this.client.guilds.cache.get(
       this.configService.get('GUILD_ID')!,

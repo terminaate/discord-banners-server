@@ -35,7 +35,7 @@ export class UserDTO {
     this.avatarDecoration = member.user.avatarDecorationData?.asset;
     this.profileEffect = profileEffect;
 
-    // TODO?: maybe add createdAt field
+    // TODO?: maybe add createdAt layer
 
     this.customStatus = member.presence?.activities.find(
       (activity) => activity.type === ActivityType.Custom,
