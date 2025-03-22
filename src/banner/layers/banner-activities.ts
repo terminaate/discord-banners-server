@@ -15,7 +15,7 @@ import { UserDataForCanvas } from '@/banner/types/user-data-for-canvas';
 import { BannerPublicFlags } from '@/banner/layers/banner-public-flags';
 import * as path from 'node:path';
 import { ActivityType } from 'discord.js';
-import { prettyDuration } from '@/utils/prettyDuration';
+import { prettyDuration } from '@/common/utils/prettyDuration';
 
 class BannerActivity {
   width: MeasurementUnit = '90%';

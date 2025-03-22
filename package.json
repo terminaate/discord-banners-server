@@ -75,6 +75,7 @@
     "@nestjs/core": "^11.0.11",
     "@nestjs/platform-express": "^11.0.11",
     "@nestjs/schedule": "^5.0.1",
+    "@nestjs/typeorm": "^11.0.0",
     "axios": "^1.8.2",
     "cache-manager": "^6.4.1",
     "canvas": "^3.1.0",
@@ -91,8 +92,10 @@
     "morgan": "^1.10.0",
     "ms": "^3.0.0-canary.1",
     "necord": "^6.8.8",
+    "pg": "^8.14.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
-    "sharp": "^0.33.5"
+    "sharp": "^0.33.5",
+    "typeorm": "^0.3.21"
   }
 }

@@ -5,15 +5,40 @@ import { UserDTO } from '@/common/dto/user.dto';
 import { BannerOptions } from '@/banner/types/banner-options';
 import { sum } from 'lodash';
 import { DiscordService } from '@/discord/discord.service';
-import { formatBytes } from '@/utils/formatBytes';
+import { formatBytes } from '@/common/utils/formatBytes';
 import { UserActivityDTO } from '@/common/dto/user-activity.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { BannerRenderRecordEntity } from '@/banner/entities/banner-render-record.entity';
+import { PaginationDto } from '@/common/dto/pagination.dto';
 
 @Injectable()
 export class BannerService {
   constructor(
     private renderService: BannerRenderService,
     private discordService: DiscordService,
+    @InjectRepository(BannerRenderRecordEntity)
+    private renderRecordsRepository: Repository<BannerRenderRecordEntity>,
   ) {}
+
+  async getStats(paginationDto: PaginationDto) {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.renderRecordsRepository.findAndCount({
+      take: limit,
+      skip: skip,
+      order: { createdAt: 'DESC' },
+    });
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
 
   async benchmarkBannerRender(
     memberId: string,
@@ -32,10 +57,18 @@ export class BannerService {
     for (let i = 0; i < 100; i++) {
       const startDate = Date.now();
 
-      await this.renderBanner(
-        member,
-        member.presence?.activities,
-        overwrites,
+      const filteredActivities =
+        member.presence?.activities
+          ?.filter((o) => o.type !== ActivityType.Custom)
+          .map((o) => new UserActivityDTO(o))
+          .slice(0, 2) ?? [];
+
+      const userDto = new UserDTO(member);
+      Object.assign(userDto, overwrites);
+
+      await this.renderService.create(
+        userDto,
+        filteredActivities,
         bannerOptions,
       );
 
@@ -59,6 +92,8 @@ export class BannerService {
     overwrites?: Partial<Record<keyof UserDTO, string>>,
     bannerOptions?: BannerOptions,
   ) {
+    const startTime = Date.now();
+
     const filteredActivities =
       activities
         ?.filter((o) => o.type !== ActivityType.Custom)
@@ -68,7 +103,7 @@ export class BannerService {
     const userDto = new UserDTO(member);
     Object.assign(userDto, overwrites);
 
-    const canvas = await this.renderService.create(
+    const { canvas, stats } = await this.renderService.create(
       userDto,
       filteredActivities,
       bannerOptions,
@@ -76,7 +111,20 @@ export class BannerService {
 
     const svg = canvas.toBuffer().toString();
 
-    console.log('svg size', formatBytes(svg.length));
+    const endTime = Date.now();
+
+    const elapsedTime = endTime - startTime;
+    const size = formatBytes(svg.length);
+
+    const newEntity = this.renderRecordsRepository.create({
+      size,
+      time: elapsedTime,
+      layersTime: stats,
+      bannerOptions: bannerOptions ?? { animated: true },
+      userData: userDto,
+    });
+
+    await this.renderRecordsRepository.save(newEntity);
 
     return svg;
   }

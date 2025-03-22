@@ -18,6 +18,7 @@ import { Response } from 'express';
 import { FakeProfileService } from '@/fake-profile/fake-profile.service';
 import { Transform } from 'class-transformer';
 import ms from 'ms';
+import { PaginationDto } from '@/common/dto/pagination.dto';
 
 class GetBannerParams {
   @IsString()
@@ -31,11 +32,6 @@ class GetBannerQuery {
   @IsBoolean()
   @Transform(({ value }) => value === 'true')
   animated?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  @Transform(({ value }) => value === 'true')
-  compact?: boolean;
 
   @IsOptional()
   @IsBoolean()
@@ -78,6 +74,12 @@ export class BannerController {
       overwrites,
       bannerOptions,
     );
+  }
+
+  @Get('/stats')
+  @HttpCode(HttpStatus.OK)
+  async getStats(@Query() paginationDto: PaginationDto) {
+    return this.bannerService.getStats(paginationDto);
   }
 
   @Get('/banner/:memberId')
@@ -131,14 +133,12 @@ export class BannerController {
     const {
       profileEffect,
       decoration,
-      compact = false,
       animated = true,
       fakeProfile = false,
     } = query;
     const { memberId } = params;
 
     const bannerOptions: BannerOptions = {
-      compact,
       animated,
     };
 

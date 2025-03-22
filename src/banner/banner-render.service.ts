@@ -104,10 +104,7 @@ export class BannerRenderService {
       stats[layer.constructor.name] = endTime - startTime;
     }
 
-    this.logger.log('Time to render a banner spend');
-    this.logger.log(stats);
-
-    return canvas;
+    return { canvas, stats };
   }
 
   private calculateHeight({ user, activities }: UserDataForCanvas) {
