@@ -113,6 +113,10 @@ class BannerActivity {
       const progress =
         (Date.now() - +startTimestamp) / (+endTimestamp - +startTimestamp);
 
+      if (progress > 1) {
+        return;
+      }
+
       const durationsTextWidth = this.canvas.ctx.measureText('00:00').width;
 
       const gapBetweenElements = 3;
