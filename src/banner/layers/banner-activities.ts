@@ -113,7 +113,7 @@ class BannerActivity {
       const progress =
         (Date.now() - +startTimestamp) / (+endTimestamp - +startTimestamp);
 
-      if (progress > 1) {
+      if (timeElapsed > songDuration) {
         return;
       }
 
