@@ -107,19 +107,11 @@ class BannerActivity {
       maxSize: this.maxTextSize,
     });
 
-    // TODO: works unstable
     if (startTimestamp && endTimestamp) {
       const timeElapsed = Date.now() - +startTimestamp;
       const songDuration = +endTimestamp - +startTimestamp;
       const progress =
         (Date.now() - +startTimestamp) / (+endTimestamp - +startTimestamp);
-
-      console.log(
-        'DEBUG LOG OF ACTIVITY TIMINGS',
-        timeElapsed,
-        songDuration,
-        progress,
-      );
 
       if (timeElapsed > songDuration) {
         return;

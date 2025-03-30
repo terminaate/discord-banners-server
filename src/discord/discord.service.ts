@@ -7,9 +7,7 @@ export class DiscordService {
   constructor(
     private readonly client: Client,
     private configService: ConfigService,
-  ) {
-    // TODO: add interval that update's client members cache, ig this old cache is triggering problem where our activity is bugging
-  }
+  ) {}
 
   getRandomUser() {
     const guild = this.client.guilds.cache.get(
