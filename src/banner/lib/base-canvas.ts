@@ -395,6 +395,7 @@ export class BaseCanvas extends Canvas {
 
       base64 = `data:${dataType};base64,${buffer.toString('base64')}`;
     } else {
+      // TODO: add try/catch here
       const { data, headers } = await axios<Buffer<ArrayBufferLike>>({
         url,
         responseType: 'arraybuffer',

@@ -17,6 +17,8 @@ export class UserDTO {
   avatarDecoration?: string | null;
 
   constructor(member: GuildMember, profileEffect?: string) {
+    // TODO: improva avatar image quality
+
     const accentColor =
       member.displayHexColor !== DEFAULT_ACCENT_COLOR
         ? member.displayHexColor
