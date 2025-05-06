@@ -1,8 +1,10 @@
 import { BannerRenderRecordEntity } from '@/banner/entities/banner-render-record.entity';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_FILTER } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { BannerModule } from './banner/banner.module';
 import { DiscordModule } from './discord/discord.module';
 import { FakeProfileModule } from './fake-profile/fake-profile.module';
@@ -13,6 +15,8 @@ const config = () => ({
 
 @Module({
   imports: [
+    SentryModule.forRoot(),
+
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
@@ -43,6 +47,11 @@ const config = () => ({
     FakeProfileModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: SentryGlobalFilter,
+    },
+  ],
 })
 export class AppModule {}

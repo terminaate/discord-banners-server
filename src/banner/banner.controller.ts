@@ -1,3 +1,10 @@
+import { BannerBenchmarkService } from '@/banner/banner-benchmark.service';
+import { BannerService } from '@/banner/banner.service';
+import { BannerOptions } from '@/banner/types/banner-options';
+import { PaginationDto } from '@/common/dto/pagination.dto';
+import { UserDTO } from '@/common/dto/user.dto';
+import { DiscordService } from '@/discord/discord.service';
+import { FakeProfileService } from '@/fake-profile/fake-profile.service';
 import {
   Controller,
   Get,
@@ -9,19 +16,12 @@ import {
   Query,
   Res,
 } from '@nestjs/common';
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
-import { BannerOptions } from '@/banner/types/banner-options';
-import { UserDTO } from '@/common/dto/user.dto';
-import { pickBy } from 'lodash';
-import { DiscordService } from '@/discord/discord.service';
-import { BannerService } from '@/banner/banner.service';
-import { Response } from 'express';
-import { FakeProfileService } from '@/fake-profile/fake-profile.service';
-import { Transform } from 'class-transformer';
-import ms from 'ms';
-import { PaginationDto } from '@/common/dto/pagination.dto';
-import { BannerBenchmarkService } from '@/banner/banner-benchmark.service';
 import { ConfigService } from '@nestjs/config';
+import { Transform } from 'class-transformer';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { Response } from 'express';
+import { pickBy } from 'lodash';
+import ms from 'ms';
 
 class GetBannerParams {
   @IsString()
@@ -96,22 +96,7 @@ export class BannerController {
     @Query() query: GetBannerQuery,
     @Res() res: Response,
   ) {
-    const { memberId } = params;
-    const { overwrites, bannerOptions } = await this.getBannerDataFromRequest(
-      params,
-      query,
-    );
-
-    const svg = await this.handleRenderRequest(
-      memberId,
-      overwrites,
-      bannerOptions,
-    );
-
-    res.setHeader('Content-Type', 'image/svg+xml');
-    res.setHeader('Cache-Control', `max-age=${this.bannerCacheTTL}`);
-
-    return res.send(svg);
+    throw new Error('my exception');
   }
 
   private async handleRenderRequest(
