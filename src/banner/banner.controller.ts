@@ -96,7 +96,22 @@ export class BannerController {
     @Query() query: GetBannerQuery,
     @Res() res: Response,
   ) {
-    throw new Error('my exception');
+    const { memberId } = params;
+    const { overwrites, bannerOptions } = await this.getBannerDataFromRequest(
+      params,
+      query,
+    );
+
+    const svg = await this.handleRenderRequest(
+      memberId,
+      overwrites,
+      bannerOptions,
+    );
+
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.setHeader('Cache-Control', `max-age=${this.bannerCacheTTL}`);
+
+    return res.send(svg);
   }
 
   private async handleRenderRequest(
