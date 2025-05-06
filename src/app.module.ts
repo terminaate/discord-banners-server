@@ -1,11 +1,11 @@
+import { BannerRenderRecordEntity } from '@/banner/entities/banner-render-record.entity';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { DiscordModule } from './discord/discord.module';
-import { BannerModule } from './banner/banner.module';
-import { FakeProfileModule } from './fake-profile/fake-profile.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { BannerRenderRecordEntity } from '@/banner/entities/banner-render-record.entity';
+import { BannerModule } from './banner/banner.module';
+import { DiscordModule } from './discord/discord.module';
+import { FakeProfileModule } from './fake-profile/fake-profile.module';
 
 const config = () => ({
   IS_DEV: process.env.NODE_ENV === 'dev',
@@ -18,18 +18,23 @@ const config = () => ({
       isGlobal: true,
       load: [config],
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.POSTGRES_HOST,
-      port: Number.parseInt(process.env.POSTGRES_PORT),
-      username: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
-      database: process.env.POSTGRES_DB,
-      logging: true,
-      synchronize: true,
-      entities: [BannerRenderRecordEntity],
-      subscribers: [],
-      migrations: [],
+    TypeOrmModule.forRootAsync({
+      useFactory: (configService: ConfigService) => {
+        const IS_DEV = configService.getOrThrow('NODE_ENV') === 'dev';
+
+        return {
+          type: 'postgres',
+          host: configService.getOrThrow('POSTGRES_HOST'),
+          port: configService.getOrThrow('POSTGRES_PORT'),
+          username: configService.getOrThrow('POSTGRES_USER'),
+          password: configService.getOrThrow('POSTGRES_PASSWORD'),
+          database: configService.getOrThrow('POSTGRES_DB'),
+          logging: IS_DEV,
+          synchronize: IS_DEV,
+          entities: [BannerRenderRecordEntity],
+        };
+      },
+      inject: [ConfigService],
     }),
     ScheduleModule.forRoot(),
 
