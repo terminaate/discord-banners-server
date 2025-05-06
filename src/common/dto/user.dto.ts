@@ -17,8 +17,6 @@ export class UserDTO {
   avatarDecoration?: string | null;
 
   constructor(member: GuildMember, profileEffect?: string) {
-    // TODO: improva avatar image quality
-
     const accentColor =
       member.displayHexColor !== DEFAULT_ACCENT_COLOR
         ? member.displayHexColor
@@ -28,7 +26,7 @@ export class UserDTO {
     this.username = member.user.tag.toLowerCase();
     this.globalName =
       member.user.globalName !== this.username ? member.user.globalName : null;
-    this.avatar = member.displayAvatarURL({ size: 64, extension: 'png' });
+    this.avatar = member.displayAvatarURL({ size: 128, extension: 'png' });
     this.banner = member.user.bannerURL({ size: 128, extension: 'png' });
     this.status = member.presence?.status ?? 'offline';
     this.flags = member.user.flags?.toArray();

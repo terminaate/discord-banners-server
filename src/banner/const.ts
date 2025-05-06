@@ -1,7 +1,7 @@
+import { MeasurementUnit } from '@/banner/lib/base-canvas';
+import { BannerDynamicHeight } from '@/banner/types/banner-dynamic-height';
 import { ActivityType, PresenceStatus, UserFlags } from 'discord.js';
 import * as path from 'path';
-import { BannerDynamicHeight } from '@/banner/types/banner-dynamic-height';
-import { MeasurementUnit } from '@/banner/lib/base-canvas';
 
 export const StatusColors: Record<PresenceStatus, string> = {
   online: '#3BA55D',
@@ -79,8 +79,7 @@ export const BannerDynamicHeights: BannerDynamicHeight[] = [
     condition(user, activities) {
       const { customStatus } = user;
 
-      // TODO: here instead of activities.length >= 1 do activities.length > 1
-      return !customStatus && !!activities.length && activities.length >= 1;
+      return !customStatus && !!activities.length && activities.length > 1;
     },
     height: 430,
   },
