@@ -1,9 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import { HttpService } from '@nestjs/axios';
 import { UserDTO } from '@/common/dto/user.dto';
 import { FakeProfileData } from '@/fake-profile/types/fake-profile-data';
+import { HttpService } from '@nestjs/axios';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable } from '@nestjs/common';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class FakeProfileService {
@@ -27,7 +27,7 @@ export class FakeProfileService {
     try {
       const { data: fakeProfileData } =
         await this.httpService.axiosRef.get<FakeProfileData>(
-          `/v3/user/${userId}`,
+          `/users?ids=${userId}`,
         );
 
       if (!fakeProfileData) {
