@@ -40,8 +40,8 @@ export class FakeProfileService {
         res.avatar = fakeProfileData.avatar;
       }
 
-      if (fakeProfileData.profile_effect) {
-        res.profileEffect = fakeProfileData.profile_effect;
+      if (fakeProfileData.profileEffectId) {
+        res.profileEffect = fakeProfileData.profileEffectId;
       }
 
       if (fakeProfileData.banner) {
@@ -49,7 +49,7 @@ export class FakeProfileService {
       }
 
       if (fakeProfileData.decoration) {
-        res.avatarDecoration = fakeProfileData.decoration.asset;
+        res.avatarDecoration = fakeProfileData.decoration;
       }
 
       await this.cacheManager.set(userId, res);
